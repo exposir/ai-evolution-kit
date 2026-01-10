@@ -4,7 +4,9 @@
   "description": "2025 AI 前端工程师进阶全景学习项目",
   "private": true,
   "scripts": {
-    "dev:01": "pnpm --filter 01-runtime-lab dev"
+    "dev:01": "pnpm --filter 01-runtime-lab dev",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "keywords": [
     "ai",
