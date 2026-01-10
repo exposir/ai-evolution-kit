@@ -1,0 +1,23 @@
+{
+  "name": "02-data-forge",
+  "version": "1.0.0",
+  "description": "Milestone 2: Data Foundation - 记忆宫殿",
+  "type": "module",
+  "scripts": {
+    "ch9": "tsx src/09-doc-cleaner.ts",
+    "ch10": "tsx src/10-vector-db.ts",
+    "ch11": "tsx src/11-smart-search.ts",
+    "demo": "tsx src/demo.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.47.12",
+    "pdf-parse": "^1.1.1",
+    "openai": "^4.77.0",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "@types/node": "^22.10.5",
+    "tsx": "^4.19.2"
+  }
+}
