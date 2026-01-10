@@ -147,6 +147,17 @@ pnpm add @nestjs/config @nestjs/throttler ioredis @supabase/supabase-js class-va
 
 ---
 
+## 测试验收
+
+详见 [TEST_PLAN.md](./TEST_PLAN.md)
+
+| 类型 | 说明 |
+|------|------|
+| 单元测试 | 核心函数 (cosineSimilarity, splitText 等) 使用 Vitest |
+| 验收清单 | 每个章节的手动验证标准 |
+
+---
+
 ## 技术栈总览
 
 | 类别 | 技术 |
