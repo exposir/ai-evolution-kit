@@ -18,16 +18,19 @@
 
 **目标**: 懂得如何给 AI 装上"手"（Tools）和"眼"（RAG）
 
-| 章节 | 主题 | 文件 | 状态 |
-|------|------|------|------|
-| 01 | 架构总览 - Bare Metal Chat | `01-chat.ts` | ✅ |
-| 02 | Tool 定义 - Zod Schema | `02-tools.ts` | ✅ |
-| 03 | ReAct 循环 - Agent 原型 | `03-loop.ts` | ✅ |
-| 04 | 环境交互 - 文件系统 | `04-system.ts` | ✅ |
-| 05 | MCP 协议 - Server | `05-mcp-server.ts` | ✅ |
-| 06 | MCP 实战 - Client | `06-mcp-client.ts` | ✅ |
-| 07 | RAG 原理 - Embedding | `07-embedding.ts` | ✅ |
-| 08 | 基础 ETL - Search | `08-search.ts` | ✅ |
+| 章节 | 主题 | 文件 | 代码 | 验收 |
+|------|------|------|------|------|
+| 01 | 架构总览 - Bare Metal Chat | `01-chat.ts` | ✅ | ⏳ |
+| 02 | Tool 定义 - Zod Schema | `02-tools.ts` | ✅ | ⏳ |
+| 03 | ReAct 循环 - Agent 原型 | `03-loop.ts` | ✅ | ⏳ |
+| 04 | 环境交互 - 文件系统 | `04-system.ts` | ✅ | ⏳ |
+| 05 | MCP 协议 - Server | `05-mcp-server.ts` | ✅ | ✅ |
+| 06 | MCP 实战 - Client | `06-mcp-client.ts` | ✅ | ⏳ |
+| 07 | RAG 原理 - Embedding | `07-embedding.ts` | ✅ | ⏳ |
+| 08 | 基础 ETL - Search | `08-search.ts` | ✅ | ⏳ |
+
+**单元测试**: ✅ 11/11 通过 (cosineSimilarity, splitText)
+**验收阻塞**: 需配置 `OPENAI_API_KEY` 完成 Ch1-4, Ch6-8 验收
 
 ---
 

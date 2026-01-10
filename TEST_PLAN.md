@@ -228,8 +228,51 @@ export default defineConfig({
 
 | Milestone | 单元测试 | 验收清单 | 状态 |
 |-----------|----------|----------|------|
-| M1 Runtime Lab | ⬜ | ⬜ | ✅ 代码完成 |
+| M1 Runtime Lab | ✅ 11/11 | 🔶 1/8 | ✅ 代码完成，部分验收 |
 | M2 Data Foundation | ⬜ | ⬜ | ⏳ 待开发 |
 | M3 Agent Brain | ⬜ | ⬜ | ⏳ 待开发 |
 | M4 Next Client | ⬜ | ⬜ | ⏳ 待开发 |
 | M5 Server Core | ⬜ | ⬜ | ⏳ 待开发 |
+
+---
+
+## 验收记录
+
+### 2025-01-10: Milestone 1 验收
+
+**单元测试结果**: ✅ 全部通过
+```
+✓ cosineSimilarity (6 tests)
+  - 相同向量相似度为 1
+  - 正交向量相似度为 0
+  - 相反向量相似度为 -1
+  - 向量维度不匹配时抛出错误
+  - 零向量返回 0
+  - 高维向量计算正确
+
+✓ splitText (5 tests)
+  - 按段落切分
+  - 空文本返回空数组
+  - 单段落不切分
+  - 长段落按 chunkSize 切分
+  - 多个换行符视为段落分隔
+
+Test Files: 1 passed
+Tests: 11 passed
+Duration: 632ms
+```
+
+**验收清单结果**:
+
+| 章节 | 状态 | 说明 |
+|------|------|------|
+| Ch1 | ⏳ | 需要 OPENAI_API_KEY |
+| Ch2 | ⏳ | 需要 OPENAI_API_KEY |
+| Ch3 | ⏳ | 需要 OPENAI_API_KEY |
+| Ch4 | ⏳ | 需要 OPENAI_API_KEY |
+| Ch5 | ✅ | MCP Server 工具列表 + 调用正确 |
+| Ch6 | ⏳ | 需要 OPENAI_API_KEY |
+| Ch7 | ⏳ | 需要 OPENAI_API_KEY |
+| Ch8 | ⏳ | 需要 OPENAI_API_KEY |
+
+**阻塞项**: 缺少 `.env` 配置文件，需要配置 `OPENAI_API_KEY` 后完成剩余验收

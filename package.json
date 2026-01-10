@@ -6,6 +6,15 @@
   "scripts": {
     "dev:01": "pnpm --filter 01-runtime-lab dev"
   },
-  "keywords": ["ai", "agent", "langchain", "rag", "mcp"],
-  "license": "MIT"
+  "keywords": [
+    "ai",
+    "agent",
+    "langchain",
+    "rag",
+    "mcp"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "vitest": "^4.0.16"
+  }
 }
