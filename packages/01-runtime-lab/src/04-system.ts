@@ -6,6 +6,12 @@
  * 1. 定义 list_files 和 read_file 工具
  * 2. 使用 Node.js fs 模块读取真实文件
  * 3. 添加安全日志，让你知道 AI 正在操作什么
+ *
+ * @module 01-runtime-lab/04-system
+ * [INPUT]: openai (ChatCompletion), node:fs + node:path (文件系统操作)
+ * [OUTPUT]: 独立可执行脚本，无对外导出
+ * [POS]: Runtime Lab 第四章，演示 AI 如何安全地操作真实系统资源
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import 'dotenv/config';

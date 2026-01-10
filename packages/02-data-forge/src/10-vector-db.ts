@@ -11,6 +11,12 @@
  * 1. 注册 Supabase 账号
  * 2. 创建项目获取 URL 和 Key
  * 3. 执行 SQL 启用 vector 扩展
+ *
+ * @module 02-data-forge/10-vector-db
+ * [INPUT]: @supabase/supabase-js (数据库客户端), openai (Embedding), ./09-doc-cleaner (Chunk 类型)
+ * [OUTPUT]: export { VectorDB, DocumentRow, SETUP_SQL } - 向量数据库操作类与建表 SQL
+ * [POS]: Data Forge 第二章，持久化存储层，消费 09-doc-cleaner 的 Chunks，为 11-smart-search 提供数据
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import 'dotenv/config';

@@ -7,6 +7,12 @@
  * 2. 检索最相关的文档
  * 3. 构造 Context Injection Prompt
  * 4. 让 LLM 基于检索到的知识回答问题
+ *
+ * @module 01-runtime-lab/08-search
+ * [INPUT]: openai (Embedding + ChatCompletion), node:fs (知识库文件)
+ * [OUTPUT]: 独立可执行脚本，内部实现 cosineSimilarity 算法
+ * [POS]: Runtime Lab 第八章，RAG 完整流程演示，是 M1 的收官之作
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import 'dotenv/config';

@@ -7,6 +7,12 @@
  * 2. 关键词检索: 使用 PostgreSQL ilike 模糊匹配
  * 3. Hybrid Search: 结合两种策略
  * 4. Rerank: 简易版分数阈值过滤
+ *
+ * @module 02-data-forge/11-smart-search
+ * [INPUT]: @supabase/supabase-js (RPC 调用), openai (查询向量化)
+ * [OUTPUT]: export { SmartSearch, SearchResult, SearchOptions } - 混合检索引擎
+ * [POS]: Data Forge 第三章，检索层，是 M2 的收官之作，提供生产级检索能力
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import 'dotenv/config';

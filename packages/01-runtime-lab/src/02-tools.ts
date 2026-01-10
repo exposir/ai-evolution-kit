@@ -6,6 +6,12 @@
  * 1. 使用 Zod 定义工具参数 Schema
  * 2. 转换为 OpenAI 兼容的 JSON Schema
  * 3. 理解 AI 只会 "生成" 调用参数，不会真正执行
+ *
+ * @module 01-runtime-lab/02-tools
+ * [INPUT]: openai (ChatCompletion + tools), zod (Schema 定义与验证)
+ * [OUTPUT]: 独立可执行脚本，无对外导出
+ * [POS]: Runtime Lab 第二章，引入 Tool 概念，展示 AI 如何"请求"调用工具
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import 'dotenv/config';

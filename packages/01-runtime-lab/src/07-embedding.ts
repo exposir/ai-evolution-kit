@@ -7,6 +7,12 @@
  * 2. 将文本切分为 chunks
  * 3. 调用 OpenAI Embedding API 生成向量
  * 4. 存入内存 Database
+ *
+ * @module 01-runtime-lab/07-embedding
+ * [INPUT]: openai (Embedding API), node:fs (文件读取)
+ * [OUTPUT]: export { VectorDatabase, db, getEmbedding, splitText } - 向量数据库类与工具函数
+ * [POS]: Runtime Lab 第七章，RAG 基础设施，为 08-search 提供向量数据
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import 'dotenv/config';

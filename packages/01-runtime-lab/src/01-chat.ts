@@ -6,6 +6,12 @@
  * 1. 使用 dotenv 加载 API Key
  * 2. 使用 readline 处理终端输入
  * 3. 维护 messages 数组实现上下文记忆
+ *
+ * @module 01-runtime-lab/01-chat
+ * [INPUT]: openai (ChatCompletion API), dotenv (环境变量), readline (终端交互)
+ * [OUTPUT]: 独立可执行脚本，无对外导出
+ * [POS]: Runtime Lab 的第一章，演示最基础的 LLM 对话模式，后续章节在此基础上扩展
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import 'dotenv/config';

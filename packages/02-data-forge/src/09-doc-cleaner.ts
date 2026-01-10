@@ -7,6 +7,12 @@
  * 1. Extract: 提取文档内容 (PDF/Markdown/TXT)
  * 2. Clean: 清洗脏数据 (空白符、不可见字符)
  * 3. Split: 递归切分成 Chunks (保留重叠区)
+ *
+ * @module 02-data-forge/09-doc-cleaner
+ * [INPUT]: node:fs + node:path (文件操作), pdf-parse (PDF 解析)
+ * [OUTPUT]: export { Chunk, extractText, extractPDF, cleanText, RecursiveTextSplitter, processDocument }
+ * [POS]: Data Forge 第一章，ETL 管道入口，为 10-vector-db 提供清洗后的 Chunks
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import * as fs from 'node:fs';

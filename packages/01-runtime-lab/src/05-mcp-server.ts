@@ -7,6 +7,12 @@
  * 2. 实现 listTools() 返回工具列表
  * 3. 实现 call() 执行具体工具
  * 4. 这种设计实现了"能力声明"与"能力调用"的解耦
+ *
+ * @module 01-runtime-lab/05-mcp-server
+ * [INPUT]: zod (参数校验)
+ * [OUTPUT]: export { MapServer } - MCP Server 实现类，供 06-mcp-client 消费
+ * [POS]: Runtime Lab 第五章，MCP 协议服务端，与 06-mcp-client 配对使用
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import { z } from 'zod';

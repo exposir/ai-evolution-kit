@@ -7,6 +7,12 @@
  * 2. 通过"握手"获取 Server 信息
  * 3. 通过 listTools() 动态获取工具列表
  * 4. 代码中没有硬编码的 if (tool === 'map')
+ *
+ * @module 01-runtime-lab/06-mcp-client
+ * [INPUT]: openai (ChatCompletion), ./05-mcp-server (MapServer 类)
+ * [OUTPUT]: 独立可执行脚本，无对外导出
+ * [POS]: Runtime Lab 第六章，MCP 协议客户端，演示动态发现与调用 Server 能力
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import 'dotenv/config';

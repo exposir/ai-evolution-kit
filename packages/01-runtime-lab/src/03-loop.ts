@@ -6,6 +6,12 @@
  * 1. 实现 runTool(name, args) 函数执行真正的计算
  * 2. 实现 while 循环，直到 AI 完成回答
  * 3. 构造 role: 'tool' 消息将结果回传给 AI
+ *
+ * @module 01-runtime-lab/03-loop
+ * [INPUT]: openai (ChatCompletion + tool_calls), zod (参数验证)
+ * [OUTPUT]: 独立可执行脚本，无对外导出
+ * [POS]: Runtime Lab 第三章，实现 ReAct 循环，是 Agent 的核心范式
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import 'dotenv/config';
