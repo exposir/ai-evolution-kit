@@ -1,0 +1,16 @@
+AI-Evolution-Kit 是一个全栈脚手架项目，专为 2025 年 AI 前端工程师设计。
+
+项目包含 5 个主要的 Milestone（里程碑）：
+1. Runtime Lab - AI 运行时基础，学习 Tools、RAG、MCP 协议
+2. Data Forge - 数据处理管道，包括 PDF 解析、向量数据库、混合检索
+3. Agent Brain - 逻辑编排层，使用 LangGraph 构建智能体网络
+4. Next Client - 前端交互层，实现流式传输和生成式 UI
+5. Server Core - 后端服务层，NestJS 架构、Redis 缓存、限流鉴权
+
+核心技术栈包括：TypeScript、Node.js、OpenAI API、Zod、LangGraph、Next.js、NestJS。
+
+MCP (Model Context Protocol) 是一种标准化的 AI 工具协议，实现了 Client/Server 架构的解耦。
+
+RAG (Retrieval Augmented Generation) 是检索增强生成技术，通过向量相似度搜索为 LLM 提供外部知识。
+
+向量嵌入 (Embedding) 是将文本转换为高维向量的过程，使用余弦相似度来衡量文本的语义相似性。

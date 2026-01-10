@@ -1,0 +1,27 @@
+{
+  "name": "01-runtime-lab",
+  "version": "1.0.0",
+  "description": "Milestone 1: The Runtime - AI 的手与眼",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/01-chat.ts",
+    "ch1": "tsx src/01-chat.ts",
+    "ch2": "tsx src/02-tools.ts",
+    "ch3": "tsx src/03-loop.ts",
+    "ch4": "tsx src/04-system.ts",
+    "ch5": "tsx src/05-mcp-server.ts",
+    "ch6": "tsx src/06-mcp-client.ts",
+    "ch7": "tsx src/07-embedding.ts",
+    "ch8": "tsx src/08-search.ts"
+  },
+  "dependencies": {
+    "openai": "^4.77.0",
+    "zod": "^3.24.1",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "@types/node": "^22.10.5",
+    "tsx": "^4.19.2"
+  }
+}
