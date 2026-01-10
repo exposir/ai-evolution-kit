@@ -23,6 +23,7 @@ import type { ChatCompletionMessageParam } from 'openai/resources/chat/completio
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
+  baseURL: process.env.OPENAI_BASE_URL,
 });
 
 // 定义文件系统工具

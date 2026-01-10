@@ -22,6 +22,7 @@ import type { ChatCompletionMessageParam } from 'openai/resources/chat/completio
 // 初始化 OpenAI 客户端
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
+  baseURL: process.env.OPENAI_BASE_URL,
 });
 
 // 维护对话历史 - 这是实现上下文记忆的关键

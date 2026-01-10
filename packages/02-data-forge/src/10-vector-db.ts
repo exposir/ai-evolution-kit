@@ -31,6 +31,7 @@ import { Chunk, processDocument } from './09-doc-cleaner.js';
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const OPENAI_BASE_URL = process.env.OPENAI_BASE_URL;
 
 // ============================================
 // 类型定义
@@ -112,7 +113,7 @@ export class VectorDB {
     }
 
     this.supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-    this.openai = new OpenAI({ apiKey: OPENAI_API_KEY });
+    this.openai = new OpenAI({ apiKey: OPENAI_API_KEY, baseURL: OPENAI_BASE_URL });
 
     console.log('[VectorDB] 初始化完成');
     console.log(`[VectorDB] Supabase URL: ${SUPABASE_URL}`);
