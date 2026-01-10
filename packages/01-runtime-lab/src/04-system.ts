@@ -14,7 +14,9 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
-import 'dotenv/config';
+import { default as nodePath } from 'node:path';
+import dotenv from 'dotenv';
+dotenv.config({ path: nodePath.resolve(process.cwd(), '../../.env') });
 import * as readline from 'node:readline';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -128,7 +130,7 @@ async function chat(userInput: string): Promise<string> {
 
   while (true) {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: process.env.CHAT_MODEL || 'gpt-4o',
       messages: messages,
       tools: tools,
     });

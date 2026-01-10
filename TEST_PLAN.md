@@ -228,8 +228,8 @@ export default defineConfig({
 
 | Milestone | 单元测试 | 验收清单 | 状态 |
 |-----------|----------|----------|------|
-| M1 Runtime Lab | ✅ 11/11 | 🔶 1/8 | ✅ 代码完成，部分验收 |
-| M2 Data Foundation | ⬜ | ⬜ | ⏳ 待开发 |
+| M1 Runtime Lab | ✅ 11/11 | ✅ 8/8 | ✅ 全部通过 |
+| M2 Data Foundation | ✅ 9/9 | 🔶 1/3 | ⏳ Ch10/Ch11 需 Supabase |
 | M3 Agent Brain | ⬜ | ⬜ | ⏳ 待开发 |
 | M4 Next Client | ⬜ | ⬜ | ⏳ 待开发 |
 | M5 Server Core | ⬜ | ⬜ | ⏳ 待开发 |
@@ -276,3 +276,47 @@ Duration: 632ms
 | Ch8 | ⏳ | 需要 OPENAI_API_KEY |
 
 **阻塞项**: 缺少 `.env` 配置文件，需要配置 `OPENAI_API_KEY` 后完成剩余验收
+
+---
+
+### 2026-01-10: M1/M2 完整验收
+
+**环境配置**:
+```
+OPENAI_BASE_URL=https://open.bigmodel.cn/api/paas/v4
+CHAT_MODEL=glm-4.7
+EMBEDDING_MODEL=embedding-3
+```
+
+**M1 单元测试**: ✅ 11/11 通过
+```
+✓ cosineSimilarity (6 tests)
+✓ splitText (5 tests)
+```
+
+**M1 验收清单**: ✅ 8/8 通过
+
+| 章节 | 状态 | 验证结果 |
+|------|------|----------|
+| Ch1 | ✅ | AI 记住"小明"名字 |
+| Ch2 | ✅ | AI 请求调用 calculator，参数 {a:1, b:1, operation:"add"} |
+| Ch3 | ✅ | 工具执行 123+456=579 |
+| Ch4 | ✅ | AI 列出目录文件（package.json, src/, 等） |
+| Ch5 | ✅ | MapServer 返回 3 个工具（getLocation, getWeather, getRoute） |
+| Ch6 | ✅ | Client 调用 getWeather 返回北京天气 |
+| Ch7 | ✅ | 生成向量成功（embedding-3，512 维） |
+| Ch8 | ✅ | RAG 检索正确回答"项目叫 AI-Evolution-Kit" |
+
+**M2 单元测试**: ✅ 9/9 通过
+```
+✓ cleanText (6 tests)
+✓ RecursiveTextSplitter (3 tests)
+```
+
+**M2 验收清单**: 🔶 1/3 通过
+
+| 章节 | 状态 | 说明 |
+|------|------|------|
+| Ch9 | ✅ | 文档清洗切分成功，生成 3 个 Chunks |
+| Ch10 | ⏳ | 需要配置 SUPABASE_URL 和 SUPABASE_SERVICE_KEY |
+| Ch11 | ⏳ | 需要配置 Supabase 后验收 |

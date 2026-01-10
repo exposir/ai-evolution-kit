@@ -124,7 +124,7 @@ export class VectorDB {
    */
   async getEmbedding(text: string): Promise<number[]> {
     const response = await this.openai.embeddings.create({
-      model: 'text-embedding-3-small',
+      model: process.env.EMBEDDING_MODEL || 'text-embedding-3-small',
       input: text,
     });
     return response.data[0].embedding;
@@ -145,7 +145,7 @@ export class VectorDB {
       console.log(`[Embedding] 处理批次 ${Math.floor(i / batchSize) + 1}/${Math.ceil(texts.length / batchSize)}`);
 
       const response = await this.openai.embeddings.create({
-        model: 'text-embedding-3-small',
+        model: process.env.EMBEDDING_MODEL || 'text-embedding-3-small',
         input: batch,
       });
 

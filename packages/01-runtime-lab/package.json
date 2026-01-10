@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/01-chat.ts",
     "ch1": "tsx src/01-chat.ts",
+    "ch1:stream": "tsx src/01-chat-stream.ts",
     "ch2": "tsx src/02-tools.ts",
     "ch3": "tsx src/03-loop.ts",
     "ch4": "tsx src/04-system.ts",

@@ -15,7 +15,9 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
-import 'dotenv/config';
+import { default as nodePath } from 'node:path';
+import dotenv from 'dotenv';
+dotenv.config({ path: nodePath.resolve(process.cwd(), '../../.env') });
 import * as readline from 'node:readline';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -81,7 +83,7 @@ const documents: Document[] = [];
  */
 async function getEmbedding(text: string): Promise<number[]> {
   const response = await openai.embeddings.create({
-    model: 'text-embedding-3-small',
+    model: process.env.EMBEDDING_MODEL || 'text-embedding-3-small',
     input: text,
   });
   return response.data[0].embedding;
@@ -180,7 +182,7 @@ ${context}
   console.log('\n[调用 LLM]');
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
+    model: process.env.CHAT_MODEL || 'gpt-4o',
     messages: ragMessages,
   });
 

@@ -9,6 +9,7 @@ AI 运行时基础实验室 - 从裸金属 Chat 到 RAG 检索的 8 章渐进式
 ```
 src/
 ├── 01-chat.ts        : 裸金属对话，OpenAI API + readline + 上下文记忆
+├── 01-chat-stream.ts : 裸金属对话 (Stream版)，stream: true + process.stdout.write
 ├── 02-tools.ts       : Tool 定义，Zod Schema → JSON Schema 转换
 ├── 03-loop.ts        : ReAct 循环，while 闭环执行工具调用
 ├── 04-system.ts      : 文件系统交互，list_files + read_file 实权授予
@@ -41,15 +42,15 @@ pnpm ch8  # 向量搜索
 
 ## 核心概念
 
-| 章节 | 核心概念 | 关键代码 |
-|------|----------|----------|
-| Ch1 | messages 数组维持上下文 | `messages.push({ role, content })` |
-| Ch2 | Zod → JSON Schema | `z.object().describe()` |
-| Ch3 | ReAct 循环 | `while (response.tool_calls)` |
-| Ch4 | 安全边界 | `fs.readdirSync()` + 日志 |
-| Ch5 | 能力声明解耦 | `listTools()` / `call()` |
-| Ch6 | 动态发现 | `client.connect(server)` |
-| Ch7 | 向量化 | `embeddings.create()` |
-| Ch8 | 余弦相似度 | `cosineSimilarity(a, b)` |
+| 章节 | 核心概念                | 关键代码                           |
+| ---- | ----------------------- | ---------------------------------- |
+| Ch1  | messages 数组维持上下文 | `messages.push({ role, content })` |
+| Ch2  | Zod → JSON Schema       | `z.object().describe()`            |
+| Ch3  | ReAct 循环              | `while (response.tool_calls)`      |
+| Ch4  | 安全边界                | `fs.readdirSync()` + 日志          |
+| Ch5  | 能力声明解耦            | `listTools()` / `call()`           |
+| Ch6  | 动态发现                | `client.connect(server)`           |
+| Ch7  | 向量化                  | `embeddings.create()`              |
+| Ch8  | 余弦相似度              | `cosineSimilarity(a, b)`           |
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

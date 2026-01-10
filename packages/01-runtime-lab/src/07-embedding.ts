@@ -15,7 +15,9 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
-import 'dotenv/config';
+import { default as nodePath } from 'node:path';
+import dotenv from 'dotenv';
+dotenv.config({ path: nodePath.resolve(process.cwd(), '../../.env') });
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import OpenAI from 'openai';
@@ -99,7 +101,7 @@ function splitText(text: string, chunkSize = 200, overlap = 50): string[] {
  */
 async function getEmbedding(text: string): Promise<number[]> {
   const response = await openai.embeddings.create({
-    model: 'text-embedding-3-small',
+    model: process.env.EMBEDDING_MODEL || 'text-embedding-3-small',
     input: text,
   });
 
@@ -136,7 +138,7 @@ async function buildKnowledgeBase() {
 
   // 生成向量
   console.log('[3] 生成向量嵌入...');
-  console.log('    使用模型: text-embedding-3-small');
+  console.log(`    使用模型: ${process.env.EMBEDDING_MODEL || 'text-embedding-3-small'}`);
   console.log('    向量维度: 1536\n');
 
   for (let i = 0; i < chunks.length; i++) {

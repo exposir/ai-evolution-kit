@@ -14,7 +14,12 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
-import 'dotenv/config';
+import path from 'node:path';
+import dotenv from 'dotenv';
+
+// 尝试加载根目录的 .env 文件
+// 假设当前运行目录 (CWD) 是 packages/01-runtime-lab
+dotenv.config({ path: path.resolve(process.cwd(), '../../.env') });
 import * as readline from 'node:readline';
 import OpenAI from 'openai';
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
@@ -41,7 +46,7 @@ async function chat(userInput: string): Promise<string> {
 
   // 调用 OpenAI API
   const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
+    model: process.env.CHAT_MODEL || 'gpt-4o',
     messages: messages,
   });
 
