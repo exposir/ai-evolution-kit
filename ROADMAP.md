@@ -34,26 +34,22 @@
 
 ---
 
-## Milestone 2: Data Foundation ⏳
+## Milestone 2: Data Foundation ✅
 
 **目标**: 解决"脏数据"和"失忆"问题，从 Demo 走向生产级数据处理
 
-| 章节 | 主题 | 关键技术 | 文件 |
-|------|------|----------|------|
-| 09 | 复杂文档加载 | PDF 解析, Markdown 清洗, 表格还原 | `09-doc-cleaner.ts` |
-| 10 | 向量数据库 | Supabase (pgvector), 持久化存储 | `10-vector-db.ts` |
-| 11 | 高级检索 | Hybrid Search, Rerank 重排序 | `11-smart-search.ts` |
+| 章节 | 主题 | 关键技术 | 文件 | 代码 | 验收 |
+|------|------|----------|------|------|------|
+| 09 | 复杂文档加载 | PDF 解析, Markdown 清洗, 递归切分 | `09-doc-cleaner.ts` | ✅ | ✅ |
+| 10 | 向量数据库 | Supabase (pgvector), 批量 Embedding | `10-vector-db.ts` | ✅ | ⏳ |
+| 11 | 高级检索 | Hybrid Search, Rerank 重排序 | `11-smart-search.ts` | ✅ | ⏳ |
 
-**依赖安装**:
-```bash
-cd packages/02-data-forge
-pnpm add @supabase/supabase-js pdf-parse openai dotenv
-```
+**验收阻塞**: Ch10-11 需配置 `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `OPENAI_API_KEY`
 
 **准备工作**:
 - [ ] 注册 Supabase 账号
 - [ ] 创建项目获取 Project URL 和 Service Role Key
-- [ ] 执行 SQL 启用 vector 扩展
+- [ ] 执行 SQL 启用 vector 扩展（见 `10-vector-db.ts` 中的 `SETUP_SQL`）
 
 ---
 
