@@ -154,3 +154,43 @@ main();
 //
 //    - process.stdout 是通往终端的裸光缆（Stream）。
 //    - console 是光缆上的扬声器（Formatter）。
+
+/**
+ * 目标：手写一个 MiniConsole，揭示 console.log 的底层原理
+ *
+ * 核心原理：
+ * console.log(args) -> util.format(args) -> process.stdout.write(str + '\n')
+ */
+
+// import * as util from "node:util";
+
+// class MiniConsole {
+//   private stdout: NodeJS.WriteStream;
+
+//   constructor(stdout: NodeJS.WriteStream) {
+//     this.stdout = stdout;
+//   }
+
+//   log(...args: any[]): void {
+//     // 1. 格式化：将任意参数转换成字符串 (这也是 console.log 支持 %s %d 的原因)
+//     // util.format 是 Node.js 内部用来处理字符串格式化的核心工具
+//     const formatted = util.format(...args);
+
+//     // 2. 写入流：直接调用物理层的 write 方法，并手动补上换行符
+//     this.stdout.write(formatted + "\n");
+//   }
+// }
+
+// // === 现场演示 ===
+
+// const myConsole = new MiniConsole(process.stdout);
+
+// console.log("--- 标准 console.log ---");
+// console.log("Hello", "World", { a: 1 });
+
+// console.log("\n--- 我们手写的 MiniConsole ---");
+// myConsole.log("Hello", "Mini", { a: 1 });
+
+// console.log(
+//   "\n[验证] 所谓的 console.log，真的只是 stdout.write 加个回车而已。"
+// );
