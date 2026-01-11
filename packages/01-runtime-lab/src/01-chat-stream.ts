@@ -15,14 +15,14 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
-import path from 'node:path';
-import dotenv from 'dotenv';
+import path from "node:path";
+import dotenv from "dotenv";
 
 // 尝试加载根目录的 .env 文件
-dotenv.config({ path: path.resolve(process.cwd(), '../../.env') });
-import * as readline from 'node:readline';
-import OpenAI from 'openai';
-import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
+dotenv.config({ path: path.resolve(process.cwd(), "../../.env") });
+import * as readline from "node:readline";
+import OpenAI from "openai";
+import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 
 // 初始化 OpenAI 客户端
 const openai = new OpenAI({
@@ -42,17 +42,17 @@ const rl = readline.createInterface({
 // 流式聊天函数
 async function chatStream(userInput: string): Promise<string> {
   // 1. 将用户输入添加到历史
-  messages.push({ role: 'user', content: userInput });
+  messages.push({ role: "user", content: userInput });
 
   // 2. 调用 OpenAI API (开启 stream 模式)
   const stream = await openai.chat.completions.create({
-    model: process.env.CHAT_MODEL || 'gpt-4o',
+    model: process.env.CHAT_MODEL || "gpt-4o",
     messages: messages,
     stream: true, // <--- 关键点
   });
 
-  let fullResponse = '';
-  process.stdout.write('AI: '); // 先打印前缀
+  let fullResponse = "";
+  process.stdout.write("AI: "); // 先打印前缀
 
   // 3. 处理流式响应
   for await (const chunk of stream) {
@@ -64,7 +64,7 @@ async function chatStream(userInput: string): Promise<string> {
       process.stdout.write(delta.content);
       fullResponse += delta.content;
     }
-    
+
     // 处理拒绝 (安全过滤)
     if (delta?.refusal) {
       console.log(`\n[Safety Refusal]: ${delta.refusal}`);
@@ -72,19 +72,19 @@ async function chatStream(userInput: string): Promise<string> {
     }
 
     // 检查结束原因
-    if (finishReason === 'content_filter') {
-      console.log('\n[Warning]: Response cut off by content filter.');
+    if (finishReason === "content_filter") {
+      console.log("\n[Warning]: Response cut off by content filter.");
     }
   }
 
-  process.stdout.write('\n'); // 换行
+  process.stdout.write("\n"); // 换行
 
   // 4. 空响应处理与历史记录
   if (!fullResponse.trim()) {
-    console.log('[Info] AI 返回了空内容 (可能是思考时间过长或被过滤)');
+    console.log("[Info] AI 返回了空内容 (可能是思考时间过长或被过滤)");
   }
-  
-  messages.push({ role: 'assistant', content: fullResponse });
+
+  messages.push({ role: "assistant", content: fullResponse });
 
   return fullResponse;
 }
@@ -92,6 +92,9 @@ async function chatStream(userInput: string): Promise<string> {
 // 提问函数
 function prompt(question: string): Promise<string> {
   return new Promise((resolve) => {
+    // rl.question 是做什么的？
+    // 它负责先把提示符（Prompt）画在屏幕上，然后拦截输入流，
+    // 直到用户敲回车，才把控制权交还给你。
     rl.question(question, (answer) => {
       resolve(answer);
     });
@@ -100,17 +103,17 @@ function prompt(question: string): Promise<string> {
 
 // 主循环
 async function main() {
-  console.log('='.repeat(50));
-  console.log('  Chapter 1: Bare Metal Chat (Stream Mode)');
+  console.log("=".repeat(50));
+  console.log("  Chapter 1: Bare Metal Chat (Stream Mode)");
   console.log('  输入 "exit" 退出');
-  console.log('='.repeat(50));
+  console.log("=".repeat(50));
   console.log();
 
   while (true) {
-    const userInput = await prompt('You: ');
+    const userInput = await prompt("You: ");
 
-    if (userInput.toLowerCase() === 'exit') {
-      console.log('再见！');
+    if (userInput.toLowerCase() === "exit") {
+      console.log("再见！");
       rl.close();
       break;
     }
@@ -124,9 +127,30 @@ async function main() {
       await chatStream(userInput);
       console.log(); // 额外的空行分隔
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error:", error);
     }
   }
 }
 
 main();
+
+// 哥，关于终端输出的机制，这里有一个关键的区别点。
+// 在这个流式（Stream）交互的实现中，我们并没有只用 console，而是混合使用了更底层的 process.stdout.write。
+//
+// 1. console.log (宏观层 - "喊话"):
+//    - 特点：每次输出自动换行 (newline)。
+//    - 用途：用于打印系统信息、分割线、错误警告等块状内容（如 main 函数中的 UI）。
+//
+// 2. process.stdout.write (微观层 - "绣花"):
+//    - 特点：不自动换行，光标停留在字符后。
+//    - 用途：这是实现 LLM "打字机效果" 的核心。
+//      因为 AI 是按 Token 流式吐字的，如果用 console.log，屏幕会瞬间被单字刷屏。
+//      必须用 stdout.write 才能让字符无缝拼接，形成流畅的阅读体验。
+//
+// 3. 侦探视角 - 调用关系解密：
+//    其实 console.log 只是一个封装好的工人类（Console Class）。
+//    当你调用 console.log 时，它在内部通过 util.format 格式化字符串后，
+//    最终调用的恰恰就是 process.stdout.write 并补上一个 '\n'。
+//
+//    - process.stdout 是通往终端的裸光缆（Stream）。
+//    - console 是光缆上的扬声器（Formatter）。
