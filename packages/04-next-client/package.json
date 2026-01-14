@@ -1,0 +1,31 @@
+{
+  "name": "04-next-client",
+  "version": "1.0.0",
+  "description": "Milestone 4: AI UX Engineering - 交互界面",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "^15.2.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "ai": "^4.3.10",
+    "@ai-sdk/openai-compatible": "^0.2.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "@types/node": "^22.10.5",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "tailwindcss": "^4.1.4",
+    "@tailwindcss/postcss": "^4.1.4",
+    "postcss": "^8.5.3",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^15.2.4"
+  }
+}

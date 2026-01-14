@@ -1,3 +1,10 @@
+<!--
+- [INPUT]: 无
+- [OUTPUT]: 项目入口文档，提供快速开始、项目进度、技术栈信息
+- [POS]: 根目录的 L3 文档
+- [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+-->
+
 # AI Evolution Kit
 
 > 从 Script Boy 进化为 AI Architect 的 22 章节学习计划
@@ -6,13 +13,15 @@
 
 ## 项目进度
 
-| Milestone | 名称 | 章节 | 状态 | 目录 |
-|-----------|------|------|------|------|
-| M1 | Runtime Lab | Ch 1-8 | ✅ 已完成 | `packages/01-runtime-lab` |
-| M2 | Data Foundation | Ch 9-11 | ✅ 已完成 | `packages/02-data-forge` |
-| M3 | Agent Brain | Ch 12-15 | ⏳ 待开发 | `packages/03-agent-brain` |
-| M4 | Next Client | Ch 16-19 | ⏳ 待开发 | `packages/04-next-client` |
-| M5 | Server Core | Ch 20-22 | ⏳ 待开发 | `packages/05-server-core` |
+| Milestone | 名称            | 章节     | 状态      | 目录                      |
+| --------- | --------------- | -------- | --------- | ------------------------- |
+| M1        | Runtime Lab     | Ch 1-8   | ✅ 已完成 | `packages/01-runtime-lab` |
+| M2        | Data Foundation | Ch 9-11  | ✅ 已完成 | `packages/02-data-forge`  |
+| M3        | Agent Brain     | Ch 12-15 | ✅ 已完成 | `packages/03-agent-brain` |
+| M4        | Next Client     | Ch 16-19 | ✅ 已完成 | `packages/04-next-client` |
+| M5        | Server Core     | Ch 20-22 | ⏳ 待开发 | `packages/05-server-core` |
+
+**总进度: 19/22 章节完成 (86%)**
 
 ## 快速开始
 
@@ -35,7 +44,9 @@ cp .env.example .env
 ```
 
 需要的环境变量:
-- `OPENAI_API_KEY` - OpenAI API 密钥
+
+- `OPENAI_API_KEY` - OpenAI API 密钥（或智谱 AI 密钥）
+- `OPENAI_BASE_URL` - API 基础 URL（智谱: `https://open.bigmodel.cn/api/paas/v4`）
 - `SUPABASE_URL` - Supabase 项目 URL (M2 需要)
 - `SUPABASE_SERVICE_KEY` - Supabase Service Role Key (M2 需要)
 
@@ -58,6 +69,17 @@ cd packages/02-data-forge
 pnpm ch9   # 文档加载器
 pnpm ch10  # 向量数据库
 pnpm ch11  # 混合检索
+
+# Milestone 3: Agent Brain
+cd packages/03-agent-brain
+pnpm ch12  # StateGraph 基础
+pnpm ch13  # 自我修复回路
+pnpm ch14  # 人机协作 (交互式)
+pnpm ch15  # 多 Agent 协作
+
+# Milestone 4: Next Client
+cd packages/04-next-client
+pnpm dev   # 启动 http://localhost:3000
 ```
 
 ### 运行测试
@@ -68,24 +90,24 @@ pnpm test
 
 ## 技术栈
 
-| 类别 | 技术 |
-|------|------|
-| 语言 | TypeScript |
-| 运行时 | Node.js |
-| AI | OpenAI API, Vercel AI SDK |
-| 向量数据库 | Supabase (pgvector) |
-| 编排 | LangGraph |
-| 前端 | Next.js, React, Tailwind |
-| 后端 | NestJS |
-| 缓存 | Redis |
-| 协议 | MCP (Model Context Protocol) |
+| 类别       | 技术                                 |
+| ---------- | ------------------------------------ |
+| 语言       | TypeScript                           |
+| 运行时     | Node.js                              |
+| AI         | OpenAI API, Vercel AI SDK, 智谱 AI   |
+| 向量数据库 | Supabase (pgvector)                  |
+| 编排       | LangGraph                            |
+| 前端       | Next.js 15, React 19, Tailwind CSS 4 |
+| 后端       | NestJS                               |
+| 缓存       | Redis                                |
+| 协议       | MCP (Model Context Protocol)         |
 
 ## 项目结构
 
 ```
 ai-evolution-kit/
 ├── packages/
-│   ├── 01-runtime-lab/     # M1: 基础运行时
+│   ├── 01-runtime-lab/     # M1: 基础运行时 ✅
 │   │   └── src/
 │   │       ├── 01-chat.ts       # 基础对话
 │   │       ├── 02-tools.ts      # Tool 定义
@@ -96,14 +118,31 @@ ai-evolution-kit/
 │   │       ├── 07-embedding.ts  # 向量嵌入
 │   │       └── 08-search.ts     # 向量搜索
 │   │
-│   ├── 02-data-forge/      # M2: 数据处理
+│   ├── 02-data-forge/      # M2: 数据处理 ✅
 │   │   └── src/
 │   │       ├── 09-doc-cleaner.ts   # 文档清洗
 │   │       ├── 10-vector-db.ts     # 向量数据库
 │   │       └── 11-smart-search.ts  # 智能检索
 │   │
-│   ├── 03-agent-brain/     # M3: Agent 编排 (待开发)
-│   ├── 04-next-client/     # M4: 前端交互 (待开发)
+│   ├── 03-agent-brain/     # M3: Agent 编排 ✅
+│   │   └── src/
+│   │       ├── 12-state-graph.ts     # StateGraph 基础
+│   │       ├── 13-self-correction.ts # 自我修复回路
+│   │       ├── 14-human-loop.ts      # 人机协作
+│   │       └── 15-team-work.ts       # 多 Agent 协作
+│   │
+│   ├── 04-next-client/     # M4: 前端交互 ✅
+│   │   └── src/
+│   │       ├── app/
+│   │       │   ├── ch16/    # useChat Hook
+│   │       │   ├── ch17/    # Streaming UI
+│   │       │   ├── ch18/    # GenUI (工具调用)
+│   │       │   ├── ch19/    # Structured Output
+│   │       │   └── api/     # API Routes
+│   │       └── lib/
+│   │           ├── ai.ts       # AI 配置
+│   │           └── schemas.ts  # Zod Schemas
+│   │
 │   └── 05-server-core/     # M5: 后端服务 (待开发)
 │
 ├── doc/                    # 学习文档
@@ -114,7 +153,7 @@ ai-evolution-kit/
 
 ## 学习路线
 
-### Milestone 1: Runtime Lab
+### Milestone 1: Runtime Lab ✅
 
 学会给 AI 装上"手"（Tools）和"眼"（RAG）
 
@@ -123,7 +162,7 @@ ai-evolution-kit/
 - **Ch5-6**: 掌握 MCP 协议，实现 Server/Client 架构
 - **Ch7-8**: 理解 Embedding 和向量搜索原理
 
-### Milestone 2: Data Foundation
+### Milestone 2: Data Foundation ✅
 
 解决"脏数据"和"失忆"问题
 
@@ -131,25 +170,25 @@ ai-evolution-kit/
 - **Ch10**: 向量数据库（Supabase + pgvector）
 - **Ch11**: 高级检索（Hybrid Search + Rerank）
 
-### Milestone 3: Agent Brain
+### Milestone 3: Agent Brain ✅
 
 用 LangGraph 构建可控的复杂系统
 
-- **Ch12**: StateGraph 入门
-- **Ch13**: 自我修正机制
-- **Ch14**: 人机协作（Human-in-the-loop）
-- **Ch15**: 多 Agent 协作
+- **Ch12**: StateGraph 入门 - Node/Edge/State
+- **Ch13**: 自我修正机制 - 错误重试回路
+- **Ch14**: 人机协作 - Interrupt/Resume
+- **Ch15**: 多 Agent 协作 - Supervisor 模式
 
-### Milestone 4: Next Client
+### Milestone 4: Next Client ✅
 
 让 AI 输出 UI，实现流式交互
 
-- **Ch16**: Vercel AI SDK 标准
-- **Ch17**: 流式传输
-- **Ch18**: 生成式 UI（v0.dev 原理）
-- **Ch19**: 结构化输出
+- **Ch16**: Vercel AI SDK - useChat Hook
+- **Ch17**: 流式传输 - Token 级别 SSE
+- **Ch18**: 生成式 UI - AI 返回组件（v0.dev 原理）
+- **Ch19**: 结构化输出 - 实时填充 JSON
 
-### Milestone 5: Server Core
+### Milestone 5: Server Core ⏳
 
 构建健壮的后端服务
 

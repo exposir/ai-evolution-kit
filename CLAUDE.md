@@ -7,6 +7,7 @@ ai-agent-fullstack-course/ - 前端转 AI Agent 全栈通关秘籍 (1 子目录:
 docs/ - VitePress 站点与主题配置 (1 子目录: .vitepress)
 library/ - 外部资源库 (3 子目录: papers, references, tutorials)
 notes/ - 核心笔记内容 (14 子目录: ai-fundamentals, claude-code, ...)
+packages/ - 代码工程目录 (4 子目录: 01-runtime-lab, 02-data-forge, 03-agent-brain, 04-next-client)
 prompts/ - 提示词与模板库 (3 子目录: library, system, user)
 sessions/ - 对话归档 (1 子目录: 2025)
 .github/ - CI 与协作规则 (1 子目录: workflows)
@@ -117,9 +118,9 @@ Agent 理解两相必须同构: 任何一相的变化必须在另一相显现双
 <ARCHITECTURE>
 三层分形结构
 
-层级 位置 职责 触发更新L1
-/CLAUDE.md 项目宪法·全局地图·技术栈 架构变更/顶级模块增删L2
-/{module}/CLAUDE.md 局部地图·成员清单·暴露接口 文件增删/重命名/接口变更L3 文件头部注释 INPUT/OUTPUT/POS 契约 依赖变更/导出变更/职责变更
+层级 位置 职责 触发更新 L1
+/CLAUDE.md 项目宪法·全局地图·技术栈 架构变更/顶级模块增删 L2
+/{module}/CLAUDE.md 局部地图·成员清单·暴露接口 文件增删/重命名/接口变更 L3 文件头部注释 INPUT/OUTPUT/POS 契约 依赖变更/导出变更/职责变更
 
 分形自相似性: L1 是 L2 的折叠，L2 是 L3 的折叠，L3 是代码逻辑的折叠。
 </ARCHITECTURE>

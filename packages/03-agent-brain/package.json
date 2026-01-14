@@ -1,0 +1,27 @@
+{
+  "name": "03-agent-brain",
+  "version": "1.0.0",
+  "description": "Milestone 3: Agent Orchestration - 逻辑大脑",
+  "type": "module",
+  "scripts": {
+    "ch12": "tsx src/12-state-graph.ts",
+    "ch13": "tsx src/13-self-correction.ts",
+    "ch14": "tsx src/14-human-loop.ts",
+    "ch15": "tsx src/15-team-work.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@langchain/langgraph": "^0.2.42",
+    "@langchain/core": "^0.3.27",
+    "@langchain/openai": "^0.3.17",
+    "zod": "^3.24.1",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "@types/node": "^22.10.5",
+    "tsx": "^4.19.2",
+    "vitest": "^2.1.8"
+  }
+}
