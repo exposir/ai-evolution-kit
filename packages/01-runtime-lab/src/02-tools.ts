@@ -14,13 +14,18 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
-import path from 'node:path';
-import dotenv from 'dotenv';
-dotenv.config({ path: path.resolve(process.cwd(), '../../.env') });
-import * as readline from 'node:readline';
-import OpenAI from 'openai';
-import { z } from 'zod';
-import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
+import path from "node:path";
+import dotenv from "dotenv";
+dotenv.config({ path: path.resolve(process.cwd(), "../../.env") });
+import * as readline from "node:readline";
+import OpenAI from "openai";
+import { z } from "zod";
+// zod 是一个 TypeScript 优先的模式声明和验证库。
+// 在这里，我们用它来：
+// 1. 定义工具参数的结构 (Schema)
+// 2. 运行时验证 AI 生成的 JSON 参数是否符合预期
+// 它的妙处在于：写一次定义，既有了类型提示，又有了运行时检查。
+import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -29,34 +34,39 @@ const openai = new OpenAI({
 
 // 使用 Zod 定义计算器工具的参数 Schema
 const CalculatorSchema = z.object({
-  a: z.number().describe('第一个数字'),
-  b: z.number().describe('第二个数字'),
-  operation: z.enum(['add', 'subtract', 'multiply', 'divide']).describe('运算操作'),
+  // .describe() 非常关键：
+  // 1. 生成文档：在转换为 JSON Schema 时，这些描述会告诉 AI 每个参数的含义
+  // 2. 解析验证：在运行时，Zod 会验证 AI 传回来的数据是否符合这里的 number 类型
+  a: z.number().describe("第一个数字"),
+  b: z.number().describe("第二个数字"),
+  operation: z
+    .enum(["add", "subtract", "multiply", "divide"])
+    .describe("运算操作"),
 });
 
 // 将 Zod Schema 转换为 OpenAI 兼容的 JSON Schema
 // 注意：这里手动转换，也可以使用 zod-to-json-schema 库
 const calculatorJsonSchema = {
-  type: 'object' as const,
+  type: "object" as const,
   properties: {
-    a: { type: 'number', description: '第一个数字' },
-    b: { type: 'number', description: '第二个数字' },
+    a: { type: "number", description: "第一个数字" },
+    b: { type: "number", description: "第二个数字" },
     operation: {
-      type: 'string',
-      enum: ['add', 'subtract', 'multiply', 'divide'],
-      description: '运算操作',
+      type: "string",
+      enum: ["add", "subtract", "multiply", "divide"],
+      description: "运算操作",
     },
   },
-  required: ['a', 'b', 'operation'],
+  required: ["a", "b", "operation"],
 };
 
 // 定义工具列表
 const tools: OpenAI.Chat.Completions.ChatCompletionTool[] = [
   {
-    type: 'function',
+    type: "function",
     function: {
-      name: 'calculator',
-      description: '执行基本的数学运算：加减乘除',
+      name: "calculator",
+      description: "执行基本的数学运算：加减乘除",
       parameters: calculatorJsonSchema,
     },
   },
@@ -70,10 +80,10 @@ const rl = readline.createInterface({
 });
 
 async function chat(userInput: string) {
-  messages.push({ role: 'user', content: userInput });
+  messages.push({ role: "user", content: userInput });
 
   const response = await openai.chat.completions.create({
-    model: process.env.CHAT_MODEL || 'gpt-4o',
+    model: process.env.CHAT_MODEL || "gpt-4o",
     messages: messages,
     tools: tools, // 传入工具定义
   });
@@ -83,7 +93,7 @@ async function chat(userInput: string) {
 
   // 检查 AI 是否想要调用工具
   if (message.tool_calls && message.tool_calls.length > 0) {
-    console.log('\n[AI 想要调用工具]');
+    console.log("\n[AI 想要调用工具]");
     for (const toolCall of message.tool_calls) {
       console.log(`  工具名称: ${toolCall.function.name}`);
       console.log(`  参数: ${toolCall.function.arguments}`);
@@ -93,14 +103,18 @@ async function chat(userInput: string) {
       const parsed = CalculatorSchema.safeParse(args);
       if (parsed.success) {
         console.log(`  Zod 验证: 通过 ✓`);
-        console.log(`  解析结果: a=${parsed.data.a}, b=${parsed.data.b}, op=${parsed.data.operation}`);
+        console.log(
+          `  解析结果: a=${parsed.data.a}, b=${parsed.data.b}, op=${parsed.data.operation}`
+        );
       } else {
         console.log(`  Zod 验证: 失败 ✗`);
         console.log(`  错误: ${parsed.error.message}`);
       }
     }
-    console.log('\n[注意] AI 只是 "请求" 调用工具，实际执行需要我们在代码中实现。');
-    console.log('[注意] 这就是下一章 (Chapter 3: The Loop) 要解决的问题。\n');
+    console.log(
+      '\n[注意] AI 只是 "请求" 调用工具，实际执行需要我们在代码中实现。'
+    );
+    console.log("[注意] 这就是下一章 (Chapter 3: The Loop) 要解决的问题。\n");
   } else {
     // AI 直接回复文本
     console.log(`AI: ${message.content}\n`);
@@ -117,18 +131,18 @@ function prompt(question: string): Promise<string> {
 }
 
 async function main() {
-  console.log('='.repeat(50));
-  console.log('  Chapter 2: Tool Definition');
+  console.log("=".repeat(50));
+  console.log("  Chapter 2: Tool Definition");
   console.log('  尝试问: "1 加 1 等于几" 或 "帮我计算 100 除以 5"');
   console.log('  输入 "exit" 退出');
-  console.log('='.repeat(50));
+  console.log("=".repeat(50));
   console.log();
 
   while (true) {
-    const userInput = await prompt('You: ');
+    const userInput = await prompt("You: ");
 
-    if (userInput.toLowerCase() === 'exit') {
-      console.log('再见！');
+    if (userInput.toLowerCase() === "exit") {
+      console.log("再见！");
       rl.close();
       break;
     }
@@ -138,7 +152,7 @@ async function main() {
     try {
       await chat(userInput);
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error:", error);
     }
   }
 }

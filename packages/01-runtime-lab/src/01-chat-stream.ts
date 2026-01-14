@@ -159,7 +159,18 @@ main();
  * 目标：手写一个 MiniConsole，揭示 console.log 的底层原理
  *
  * 核心原理：
- * console.log(args) -> util.format(args) -> process.stdout.write(str + '\n')
+ * 1. **格式化 (Formatting)**:
+ *    它首先调用 Node.js 内部的 `util.format(...args)`。这个函数负责处理占位符（如 %s, %d）
+ *    并将对象转换为字符串表示。这是 console.log 能打印任意类型数据的秘密。
+ *
+ * 2. **写入流 (Stream Writing)**:
+ *    格式化后的字符串被传递给 stdout 流。
+ *
+ * 3. **追加换行 (Newline)**:
+ *    最关键的一步，console.log 会在最后强制追加一个 `\n` 换行符，
+ *    然后调用 `process.stdout.write(finalString)`。
+ *
+ * 简而言之：`console.log` = `util.format` + `process.stdout.write` + `\n`
  */
 
 // import * as util from "node:util";
