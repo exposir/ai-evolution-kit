@@ -17,7 +17,7 @@
 | M2        | Data Foundation | Ch 9-11  | ✅ 已完成 | `packages/02-data-forge`  |
 | M3        | Agent Brain     | Ch 12-15 | ✅ 已完成 | `packages/03-agent-brain` |
 | M4        | Next Client     | Ch 16-19 | ✅ 已完成 | `packages/04-next-client` |
-| M5        | Server Core     | Ch 20-22 | ⏳ 待开发 | `packages/05-server-core` |
+| M5        | Server Core     | Ch 20-22 | ✅ 已完成 | `packages/05-server-core` |
 
 ---
 
@@ -103,25 +103,25 @@
 
 ---
 
-## Milestone 5: Server Core ⏳
+## Milestone 5: Server Core ✅
 
 **目标**: 解决并发、安全、成本问题，构建健壮的后端服务
 
-| 章节 | 主题                       | 关键技术                       | 模块                |
-| ---- | -------------------------- | ------------------------------ | ------------------- |
-| 20   | The Fortress (NestJS 架构) | Controller, Service, Guard, DI | `chat.module.ts`    |
-| 21   | Redis Memory & Caching     | Redis Checkpointer, 缓存拦截器 | `memory.service.ts` |
-| 22   | Guardrails (卫兵与限流)    | @nestjs/throttler, Auth Guard  | `auth.guard.ts`     |
+| 章节 | 主题                       | 关键技术                       | 文件               | 代码 | 验收 |
+| ---- | -------------------------- | ------------------------------ | ------------------ | ---- | ---- |
+| 20   | The Fortress (NestJS 架构) | Controller, Service, Guard, DI | `chat/*.ts`        | ✅   | ✅   |
+| 21   | Redis Memory & Caching     | Redis Checkpointer, 缓存拦截器 | `memory/*.ts`      | ✅   | ⏳   |
+| 22   | Guardrails (卫兵与限流)    | @nestjs/throttler, Auth Guard  | `common/guards/*`  | ✅   | ✅   |
 
-**项目初始化**:
+**验收状态**: Ch20/22 ✅ 通过 | Ch21 需配置 `REDIS_URL`
 
-```bash
-cd packages
-npm i -g @nestjs/cli
-nest new 05-server-core
-cd 05-server-core
-pnpm add @nestjs/config @nestjs/throttler ioredis @supabase/supabase-js class-validator class-transformer
-```
+**API 端点**:
+
+| Method | Path           | 说明                    |
+| ------ | -------------- | ----------------------- |
+| POST   | /chat          | 同步对话, 返回完整响应  |
+| POST   | /chat/stream   | 流式对话, SSE 逐 token  |
+| GET    | /health        | 健康检查, 返回服务状态  |
 
 **架构设计**:
 
@@ -130,6 +130,13 @@ pnpm add @nestjs/config @nestjs/throttler ioredis @supabase/supabase-js class-va
 │  Next.js    │────▶│   NestJS    │────▶│   Redis     │
 │  Frontend   │     │   Backend   │     │   + PG      │
 └─────────────┘     └─────────────┘     └─────────────┘
+```
+
+**运行**:
+
+```bash
+cd packages/05-server-core
+pnpm dev  # 启动 http://localhost:3001
 ```
 
 ---

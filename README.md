@@ -19,9 +19,9 @@
 | M2        | Data Foundation | Ch 9-11  | ✅ 已完成 | `packages/02-data-forge`  |
 | M3        | Agent Brain     | Ch 12-15 | ✅ 已完成 | `packages/03-agent-brain` |
 | M4        | Next Client     | Ch 16-19 | ✅ 已完成 | `packages/04-next-client` |
-| M5        | Server Core     | Ch 20-22 | ⏳ 待开发 | `packages/05-server-core` |
+| M5        | Server Core     | Ch 20-22 | ✅ 已完成 | `packages/05-server-core` |
 
-**总进度: 19/22 章节完成 (86%)**
+**总进度: 22/22 章节完成 (100%) 🎉**
 
 ## 快速开始
 
@@ -80,6 +80,10 @@ pnpm ch15  # 多 Agent 协作
 # Milestone 4: Next Client
 cd packages/04-next-client
 pnpm dev   # 启动 http://localhost:3000
+
+# Milestone 5: Server Core
+cd packages/05-server-core
+pnpm dev   # 启动 http://localhost:3001
 ```
 
 ### 运行测试
@@ -143,7 +147,13 @@ ai-evolution-kit/
 │   │           ├── ai.ts       # AI 配置
 │   │           └── schemas.ts  # Zod Schemas
 │   │
-│   └── 05-server-core/     # M5: 后端服务 (待开发)
+│   └── 05-server-core/     # M5: 后端服务 ✅
+│       └── src/
+│           ├── main.ts            # 应用入口
+│           ├── app.module.ts      # 根模块
+│           ├── chat/              # Chat API (Controller/Service)
+│           ├── memory/            # Redis 会话管理
+│           └── common/            # Guards/Interceptors
 │
 ├── doc/                    # 学习文档
 ├── ROADMAP.md             # 开发路线图
@@ -188,13 +198,13 @@ ai-evolution-kit/
 - **Ch18**: 生成式 UI - AI 返回组件（v0.dev 原理）
 - **Ch19**: 结构化输出 - 实时填充 JSON
 
-### Milestone 5: Server Core ⏳
+### Milestone 5: Server Core ✅
 
 构建健壮的后端服务
 
-- **Ch20**: NestJS 架构
-- **Ch21**: Redis 缓存
-- **Ch22**: 限流与鉴权
+- **Ch20**: NestJS 架构 - Controller/Service/Module/DI
+- **Ch21**: Redis Memory - 会话持久化 (Checkpointer)
+- **Ch22**: Guardrails - 限流 (@nestjs/throttler) + 认证 (API Key Guard)
 
 ## 文档
 

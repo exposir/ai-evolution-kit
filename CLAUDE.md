@@ -7,7 +7,7 @@ ai-agent-fullstack-course/ - 前端转 AI Agent 全栈通关秘籍 (1 子目录:
 docs/ - VitePress 站点与主题配置 (1 子目录: .vitepress)
 library/ - 外部资源库 (3 子目录: papers, references, tutorials)
 notes/ - 核心笔记内容 (14 子目录: ai-fundamentals, claude-code, ...)
-packages/ - 代码工程目录 (4 子目录: 01-runtime-lab, 02-data-forge, 03-agent-brain, 04-next-client)
+packages/ - 代码工程目录 (5 子目录: 01-runtime-lab, 02-data-forge, 03-agent-brain, 04-next-client, 05-server-core)
 prompts/ - 提示词与模板库 (3 子目录: library, system, user)
 sessions/ - 对话归档 (1 子目录: 2025)
 .github/ - CI 与协作规则 (1 子目录: workflows)

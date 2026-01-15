@@ -83,9 +83,28 @@ async function chat(userInput: string) {
   messages.push({ role: "user", content: userInput });
 
   const response = await openai.chat.completions.create({
-    model: process.env.CHAT_MODEL || "gpt-4o",
-    messages: messages,
-    tools: tools, // 传入工具定义
+    model: process.env.CHAT_MODEL || "gpt-4o", // 要使用的模型 ID (如 gpt-4o, gpt-3.5-turbo)
+    messages: messages, // 迄今为止的对话消息列表
+    tools: tools, // 模型可以调用的工具列表 (目前仅支持 type: "function")
+    // ====== 可选参数 (完整列表) ======
+    // frequency_penalty: 0, // 频率惩罚，降低模型重复相同内容的概率 (-2.0 到 2.0)
+    // logit_bias: {}, //因为: 修改特定 token 出现的概率
+    // logprobs: false, // 是否返回 log probabilities
+    // top_logprobs: null, // 如果 logprobs 为 true，返回前 N 个 token 的 log probabilities (0-20)
+    // max_tokens: null, // 生成的最大 token 数
+    // n: 1, // 为每个 prompt 生成多少个 completion
+    // presence_penalty: 0, // 存在惩罚，鼓励模型谈论新主题 (-2.0 到 2.0)
+    // response_format: { type: "text" }, // 指定输出格式，如 { type: "json_object" }
+    // seed: null, // 随机数种子，用于尽量保证确定性输出
+    // service_tier: null, // 指定服务层级 (如 "auto", "default")
+    // stop: null, // 停止序列，可以是 string 或 string[]
+    // stream: false, // 是否流式输出
+    // stream_options: null, // 流式输出的选项
+    // temperature: 1, // 采样温度，控制随机性 (0 到 2)
+    // top_p: 1, // 核采样 (Nucleus sampling)，与 temperature 二选一 (0 到 1)
+    // tool_choice: "auto", // 控制是否/如何调用工具 ("none", "auto", "required", 或指定工具)
+    // parallel_tool_calls: true, // 是否允许并行工具调用
+    // user: "user-id", // 最终用户的唯一标识，用于监控和检测滥用
   });
 
   const choice = response.choices[0];
