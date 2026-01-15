@@ -8,7 +8,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createOpenAI } from '@ai-sdk/openai';
-import { generateText, streamText, CoreMessage } from 'ai';
+import { generateText, streamText } from 'ai';
 import { ChatRequestDto, ChatResponseDto } from './dto/chat.dto';
 import { randomUUID } from 'crypto';
 
@@ -29,15 +29,16 @@ export class ChatService {
    * - ConfigService 由 NestJS DI 容器自动注入
    * ───────────────────────────────────────────────────────────────────────── */
   constructor(private readonly configService: ConfigService) {
-    const apiKey = this.configService.get<string>('OPENAI_API_KEY');
-    const baseURL = this.configService.get<string>('OPENAI_BASE_URL');
+    const apiKey = this.configService.get<string>('OPENAI_API_KEY')!;
+    const baseURL = this.configService.get<string>('OPENAI_BASE_URL') || 'https://api.openai.com/v1';
 
     this.openai = createOpenAI({
       apiKey,
       baseURL,
+      compatibility: 'compatible', // 使用 /chat/completions API
     });
 
-    this.model = this.configService.get<string>('OPENAI_MODEL') || 'gpt-4o-mini';
+    this.model = this.configService.get<string>('CHAT_MODEL') || this.configService.get<string>('OPENAI_MODEL') || 'gpt-4o-mini';
     this.logger.log(`ChatService initialized with model: ${this.model}`);
   }
 
@@ -50,7 +51,7 @@ export class ChatService {
 
     this.logger.debug(`Processing chat request for session: ${sessionId}`);
 
-    const messages: CoreMessage[] = dto.messages.map((m) => ({
+    const messages = dto.messages.map((m) => ({
       role: m.role,
       content: m.content,
     }));
@@ -64,9 +65,9 @@ export class ChatService {
       content: result.text,
       sessionId,
       usage: {
-        promptTokens: result.usage.inputTokens ?? 0,
-        completionTokens: result.usage.outputTokens ?? 0,
-        totalTokens: (result.usage.inputTokens ?? 0) + (result.usage.outputTokens ?? 0),
+        promptTokens: result.usage.promptTokens,
+        completionTokens: result.usage.completionTokens,
+        totalTokens: result.usage.totalTokens,
       },
     };
   }
@@ -78,7 +79,7 @@ export class ChatService {
   async *streamChat(dto: ChatRequestDto): AsyncIterable<string> {
     const model = dto.model || this.model;
 
-    const messages: CoreMessage[] = dto.messages.map((m) => ({
+    const messages = dto.messages.map((m) => ({
       role: m.role,
       content: m.content,
     }));

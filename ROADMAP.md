@@ -139,21 +139,40 @@ cd packages/05-server-core
 pnpm dev  # 启动 http://localhost:3001
 ```
 
+**测试请求**:
+
+```bash
+# 健康检查
+curl http://localhost:3001/health
+
+# 同步对话 (智谱 AI)
+curl -X POST http://localhost:3001/chat \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"hello"}]}'
+
+# 流式对话
+curl -N -X POST http://localhost:3001/chat/stream \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"count 1 to 5"}]}'
+```
+
+**兼容性说明**:
+
+使用 AI SDK 4 (`ai@^4.0.0`) + `compatibility: 'compatible'` 模式，兼容智谱等 OpenAI 兼容 API。
+
 ---
 
-## 快速开始下一个 Milestone
+## 项目完成
 
-当你准备开始下一个阶段时，告诉我：
+🎉 **22/22 章节全部完成！**
 
-```
-开始 Milestone 2
-```
+从 Script Boy 到 AI Architect 的进化之路已走完。项目涵盖：
 
-我会帮你：
-
-1. 创建 `packages/02-data-forge` 目录
-2. 配置依赖和 TypeScript
-3. 实现 Chapter 9-11 的代码
+- **M1**: AI 基础能力 (Tools + RAG)
+- **M2**: 生产级数据处理 (向量数据库 + 混合检索)
+- **M3**: 复杂系统编排 (LangGraph 状态机)
+- **M4**: 流式交互前端 (Next.js + AI SDK)
+- **M5**: 健壮后端服务 (NestJS + Redis + 限流)
 
 ---
 

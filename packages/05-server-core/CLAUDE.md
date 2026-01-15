@@ -4,6 +4,14 @@
 
 Milestone 5: Server Core - NestJS 后端堡垒
 
+## 验收状态
+
+| 章节 | 功能 | 状态 |
+|------|------|------|
+| Ch20 | NestJS 架构 (Controller/Service/Module) | ✅ |
+| Ch21 | Redis Memory (需配置 REDIS_URL) | ⏳ |
+| Ch22 | Guardrails (限流/认证) | ✅ |
+
 ## 架构概览
 
 ```
@@ -44,7 +52,7 @@ src/
 
 `chat/chat.module.ts`: 模块声明, 导出 ChatService
 `chat/chat.controller.ts`: POST /chat (同步), POST /chat/stream (SSE), 带 ThrottlerGuard
-`chat/chat.service.ts`: Vercel AI SDK 封装, generateText/streamText
+`chat/chat.service.ts`: AI SDK 4 封装, generateText/streamText, compatibility 模式
 `chat/dto/chat.dto.ts`: MessageDto, ChatRequestDto, ChatResponseDto
 
 ### Memory 模块 (Ch21)
@@ -60,7 +68,7 @@ src/
 
 ### Config
 
-`config/env.validation.ts`: class-validator 校验 OPENAI_API_KEY 等环境变量
+`config/env.validation.ts`: class-validator 校验环境变量
 
 ## API 端点
 
@@ -73,10 +81,17 @@ src/
 ## 技术栈
 
 - **框架**: NestJS 11
-- **AI**: Vercel AI SDK + @ai-sdk/openai
+- **AI**: Vercel AI SDK 4 + @ai-sdk/openai (compatibility 模式)
 - **缓存**: ioredis
 - **校验**: class-validator + class-transformer
 - **限流**: @nestjs/throttler (3 级限流: 1s/10s/60s)
+
+## 兼容性说明
+
+使用 AI SDK 4 (`ai@^4.0.0`) 而非 AI SDK 5/6，因为：
+- AI SDK 5/6 使用新的 `/responses` API 端点
+- 智谱 AI 等 OpenAI 兼容服务只支持 `/chat/completions`
+- `@ai-sdk/openai` 的 `compatibility: 'compatible'` 选项在 v4 中有效
 
 ## 运行
 
@@ -85,14 +100,31 @@ cd packages/05-server-core
 pnpm dev  # 启动 http://localhost:3001
 ```
 
+## 测试请求
+
+```bash
+# 健康检查
+curl http://localhost:3001/health
+
+# 同步对话
+curl -X POST http://localhost:3001/chat \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"hello"}]}'
+
+# 流式对话
+curl -N -X POST http://localhost:3001/chat/stream \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"count 1 to 5"}]}'
+```
+
 ## 环境变量
 
 | 变量 | 必需 | 说明 |
 |------|------|------|
 | OPENAI_API_KEY | ✅ | OpenAI/智谱 API Key |
-| OPENAI_BASE_URL | ❌ | 自定义 API 端点 |
-| OPENAI_MODEL | ❌ | 模型名 (默认 gpt-4o-mini) |
-| REDIS_URL | ❌ | Redis 连接 (默认 redis://localhost:6379) |
-| API_KEY | ❌ | 接口认证密钥 |
+| OPENAI_BASE_URL | ❌ | 自定义 API 端点 (智谱: `https://open.bigmodel.cn/api/paas/v4`) |
+| CHAT_MODEL | ❌ | 模型名 (智谱: `glm-4-airx`, OpenAI: `gpt-4o-mini`) |
+| REDIS_URL | ❌ | Redis 连接 (默认 `redis://localhost:6379`) |
+| API_KEY | ❌ | 接口认证密钥 (启用 ApiKeyGuard) |
 
 [PROTOCOL]: 变更时更新此头部, 然后检查 CLAUDE.md

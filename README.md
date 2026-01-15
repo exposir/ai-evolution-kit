@@ -45,10 +45,14 @@ cp .env.example .env
 
 需要的环境变量:
 
-- `OPENAI_API_KEY` - OpenAI API 密钥（或智谱 AI 密钥）
-- `OPENAI_BASE_URL` - API 基础 URL（智谱: `https://open.bigmodel.cn/api/paas/v4`）
-- `SUPABASE_URL` - Supabase 项目 URL (M2 需要)
-- `SUPABASE_SERVICE_KEY` - Supabase Service Role Key (M2 需要)
+| 变量 | 必需 | 说明 |
+|------|------|------|
+| `OPENAI_API_KEY` | ✅ | OpenAI/智谱 API 密钥 |
+| `OPENAI_BASE_URL` | ❌ | 自定义 API 端点 (智谱: `https://open.bigmodel.cn/api/paas/v4`) |
+| `CHAT_MODEL` | ❌ | 模型名 (智谱: `glm-4-airx`, OpenAI: `gpt-4o-mini`) |
+| `SUPABASE_URL` | ❌ | Supabase 项目 URL (M2 需要) |
+| `SUPABASE_SERVICE_KEY` | ❌ | Supabase Service Role Key (M2 需要) |
+| `REDIS_URL` | ❌ | Redis 连接 URL (M5 需要，默认 `redis://localhost:6379`) |
 
 ### 运行示例
 
@@ -205,6 +209,45 @@ ai-evolution-kit/
 - **Ch20**: NestJS 架构 - Controller/Service/Module/DI
 - **Ch21**: Redis Memory - 会话持久化 (Checkpointer)
 - **Ch22**: Guardrails - 限流 (@nestjs/throttler) + 认证 (API Key Guard)
+
+## 已掌握的核心能力
+
+```
+Chat API ──▶ Tool Calling ──▶ ReAct Agent ──▶ LangGraph
+    │              │               │              │
+    ▼              ▼               ▼              ▼
+  基础对话      能力扩展        自主执行       复杂编排
+
+Embedding ──▶ 向量数据库 ──▶ 混合检索 ──▶ RAG 应用
+    │              │              │            │
+    ▼              ▼              ▼            ▼
+  语义理解      持久存储       精准召回      知识增强
+
+Next.js ──▶ 流式 UI ──▶ 生成式 UI ──▶ NestJS
+    │           │            │           │
+    ▼           ▼            ▼           ▼
+  前端框架   实时体验    AI 出组件    生产后端
+```
+
+## 可选进阶方向（按需学习）
+
+| 方向 | 场景 | 优先级 |
+|------|------|--------|
+| 可观测性 (LangSmith/Langfuse) | 生产调试、成本追踪 | 上线前学 |
+| 多模态 (Vision/Audio) | 图片理解、语音交互 | 有需求再学 |
+| Graph RAG | 复杂知识图谱 | 特定领域 |
+| 本地模型 (Ollama) | 隐私敏感场景 | 可选 |
+| Prompt 安全 | ToC 产品 | 上线前学 |
+
+## 学完之后
+
+22 章是系统化的地基，接下来建议：
+
+1. **做项目** — 用学到的东西构建真实产品
+2. **遇到问题再深入** — 比如上线后发现成本高，再学缓存/路由优化
+3. **关注前沿但不追** — Claude Code、Cursor 这类工具的原理你已经懂了
+
+知识够用了，**实战出真知**。
 
 ## 文档
 
