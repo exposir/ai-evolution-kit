@@ -69,10 +69,10 @@
 | ---- | -------------- | ----------------------------------- | ----------------------- | ---- | ---- |
 | 12   | LangGraph 入门 | StateGraph, Nodes, Edges            | `12-state-graph.ts`     | ✅   | ✅   |
 | 13   | 自我修正       | Conditional Edges, 循环重试         | `13-self-correction.ts` | ✅   | ✅   |
-| 14   | 人机协作       | Human-in-the-loop, Interrupt/Resume | `14-human-loop.ts`      | ✅   | ⏸️   |
+| 14   | 人机协作       | Human-in-the-loop, Interrupt/Resume | `14-human-loop.ts`      | ✅   | ✅   |
 | 15   | 多 Agent 协作  | Supervisor 模式, 任务分发           | `15-team-work.ts`       | ✅   | ✅   |
 
-**验收状态**: Ch12/13/15 ✅ 通过 | Ch14 需交互式测试
+**验收状态**: ✅ 全部通过 (2026-01-16)
 
 **核心概念**:
 
