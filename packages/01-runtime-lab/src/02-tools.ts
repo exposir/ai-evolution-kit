@@ -83,28 +83,98 @@ async function chat(userInput: string) {
   messages.push({ role: "user", content: userInput });
 
   const response = await openai.chat.completions.create({
-    model: process.env.CHAT_MODEL || "gpt-4o", // 要使用的模型 ID (如 gpt-4o, gpt-3.5-turbo)
-    messages: messages, // 迄今为止的对话消息列表
-    tools: tools, // 模型可以调用的工具列表 (目前仅支持 type: "function")
-    // ====== 可选参数 (完整列表) ======
-    // frequency_penalty: 0, // 频率惩罚，降低模型重复相同内容的概率 (-2.0 到 2.0)
-    // logit_bias: {}, //因为: 修改特定 token 出现的概率
-    // logprobs: false, // 是否返回 log probabilities
-    // top_logprobs: null, // 如果 logprobs 为 true，返回前 N 个 token 的 log probabilities (0-20)
-    // max_tokens: null, // 生成的最大 token 数
-    // n: 1, // 为每个 prompt 生成多少个 completion
-    // presence_penalty: 0, // 存在惩罚，鼓励模型谈论新主题 (-2.0 到 2.0)
-    // response_format: { type: "text" }, // 指定输出格式，如 { type: "json_object" }
-    // seed: null, // 随机数种子，用于尽量保证确定性输出
-    // service_tier: null, // 指定服务层级 (如 "auto", "default")
-    // stop: null, // 停止序列，可以是 string 或 string[]
-    // stream: false, // 是否流式输出
-    // stream_options: null, // 流式输出的选项
-    // temperature: 1, // 采样温度，控制随机性 (0 到 2)
-    // top_p: 1, // 核采样 (Nucleus sampling)，与 temperature 二选一 (0 到 1)
-    // tool_choice: "auto", // 控制是否/如何调用工具 ("none", "auto", "required", 或指定工具)
-    // parallel_tool_calls: true, // 是否允许并行工具调用
-    // user: "user-id", // 最终用户的唯一标识，用于监控和检测滥用
+    // [核心] 模型 ID
+    // OpenAI: gpt-4o, gpt-3.5-turbo
+    // DeepSeek: deepseek-chat (V3), deepseek-reasoner (R1)
+    // Qwen: qwen-turbo, qwen-plus, qwen-max
+    // Moonshot: moonshot-v1-8k, moonshot-v1-32k
+    // GLM: glm-4, glm-3-turbo
+    model: process.env.CHAT_MODEL || "gpt-4o",
+
+    // [核心] 消息列表
+    // 格式: { role: "system" | "user" | "assistant" | "tool", content: ... }
+    // 注意: DeepSeek/Moonshot/Qwen 暂不支持 "developer" role (OpenAI O1 专用)
+    // 注意: 视觉模型(Vision)才支持 content 为 array 包含 image_url
+    messages: messages,
+
+    // [核心] 工具定义
+    // 支持: OpenAI, DeepSeek, Qwen, GLM-4, Moonshot
+    // 限制: DeepSeek V2, Baichuan 等早期版本可能不支持 parallel_tool_calls
+    tools: tools,
+
+    // ====== 可选参数 & 兼容性指南 (OpenAI / DeepSeek / Qwen / GLM / Moonshot) ======
+
+    // [通用] 频率惩罚 (-2.0 到 2.0)
+    // 支持: OpenAI, DeepSeek, Qwen, GLM-4, Moonshot
+    // frequency_penalty: 0,
+
+    // [限制] Logit Bias (修改特定 Token 概率)
+    // 支持: OpenAI, Qwen
+    // 不支持/忽略: DeepSeek, Moonshot, GLM
+    // logit_bias: {},
+
+    // [限制] Log Probabilities (返回 Token 概率)
+    // 支持: OpenAI, Qwen (部分)
+    // 不支持: DeepSeek, Moonshot
+    // logprobs: false,
+    // top_logprobs: null,
+
+    // [通用] Max Tokens (最大生成长度)
+    // 支持: 所有主流模型
+    // max_tokens: null,
+
+    // [通用] N (生成候选数量)
+    // 支持: OpenAI
+    // 限制: 大多数国产模型仅支持 n=1
+    // n: 1,
+
+    // [通用] 存在惩罚 (-2.0 到 2.0)
+    // 支持: OpenAI, DeepSeek, Qwen, GLM-4
+    // presence_penalty: 0,
+
+    // [重要] Response Format (JSON 模式)
+    // 支持: OpenAI (json_object), DeepSeek (Beta), Qwen, GLM-4, Moonshot
+    // 注意: 使用时必须在 Prompt 中也明确要求 "输出 JSON"
+    // response_format: { type: "text" },
+
+    // [限制] Seed (随机种子/确定性输出)
+    // 支持: OpenAI, Qwen
+    // 不支持: DeepSeek, Moonshot
+    // seed: null,
+
+    // [特定] Service Tier
+    // 仅 OpenAI 支持
+    // service_tier: null,
+
+    // [通用] Stop (停止序列)
+    // 支持: 所有主流模型
+    // stop: null,
+
+    // [通用] Stream (流式输出)
+    // 支持: 所有主流模型
+    // stream: false,
+    // stream_options: null, // OpenAI 特有 (如 include_usage)
+
+    // [通用] Temperature (随机性 0-2)
+    // 支持: 所有主流模型 (部分模型上限为 1.0)
+    // temperature: 1,
+
+    // [通用] Top P (核采样 0-1)
+    // 支持: 所有主流模型 (建议与 temperature 二选一)
+    // top_p: 1,
+
+    // [重要] Tool Choice (工具调用控制)
+    // 支持: OpenAI, DeepSeek, Qwen, GLM-4, Moonshot
+    // 模式: "auto" (默认), "none", "required", 或指定 { type: "function", ... }
+    // tool_choice: "auto",
+
+    // [限制] Parallel Tool Calls (并行工具调用)
+    // 支持: OpenAI, DeepSeek (V2.5+), Qwen, GLM-4
+    // 不支持: 较旧的开源模型
+    // parallel_tool_calls: true,
+
+    // [其他] 用户标识
+    // user: "user-id",
   });
 
   const choice = response.choices[0];
