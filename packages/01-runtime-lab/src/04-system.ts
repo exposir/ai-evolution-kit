@@ -110,9 +110,9 @@ function runTool(name: string, args: Record<string, unknown>): string {
       return content;
     }
 
-    return `Error: 未知工具 ${name}`;
+    return `错误: 未知工具 ${name}`;
   } catch (error) {
-    return `Error: ${error instanceof Error ? error.message : String(error)}`;
+    return `错误: ${error instanceof Error ? error.message : String(error)}`;
   }
 }
 
@@ -181,7 +181,7 @@ function prompt(question: string): Promise<string> {
 
 async function main() {
   console.log('='.repeat(50));
-  console.log('  Chapter 4: System Interface');
+  console.log('  第四章: 系统接口');
   console.log('  AI 现在可以读取你的文件了！');
   console.log('  尝试: "列出当前目录的文件" 或 "读取 package.json"');
   console.log('  输入 "exit" 退出');
@@ -203,7 +203,7 @@ async function main() {
       const reply = await chat(userInput);
       console.log(`\nAI: ${reply}\n`);
     } catch (error) {
-      console.error('Error:', error);
+      console.error('错误:', error);
     }
   }
 }

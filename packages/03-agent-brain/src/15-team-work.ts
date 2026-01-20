@@ -51,7 +51,7 @@ type TeamStateType = typeof TeamState.State;
 // Researcher tools
 const searchWebTool = tool(
   async ({ query }) => {
-    console.log(`   🔍 Searching: "${query}"`);
+    console.log(`   🔍 搜索中: "${query}"`);
     // Mock search results
     const mockResults: Record<string, string> = {
       "ai trends 2024": `
@@ -78,7 +78,7 @@ Key AI Trends in 2024:
 
 const analyzeTool = tool(
   async ({ topic, data }) => {
-    console.log(`   📊 Analyzing: "${topic}"`);
+    console.log(`   📊 分析中: "${topic}"`);
     return `Analysis of ${topic}: The data indicates strong growth potential. Key insights: ${data.slice(0, 100)}...`;
   },
   {
@@ -94,7 +94,7 @@ const analyzeTool = tool(
 // Writer tools
 const draftArticleTool = tool(
   async ({ title, outline, keyPoints }) => {
-    console.log(`   ✍️  Drafting: "${title}"`);
+    console.log(`   ✍️  撰写中: "${title}"`);
     const article = `
 # ${title}
 
@@ -121,7 +121,7 @@ Based on our research, these trends will shape the AI landscape in the coming ye
 
 const editContentTool = tool(
   async ({ content, instructions }) => {
-    console.log(`   ✂️  Editing content...`);
+    console.log(`   ✂️  编辑中...`);
     return `[EDITED] ${content}\n\n(Applied edits: ${instructions})`;
   },
   {
@@ -210,7 +210,7 @@ Use your tools to draft and refine content. Focus on clarity and engagement.`;
  * ======================================================================== */
 
 async function supervisorNode(state: TeamStateType) {
-  console.log("\n👔 [Supervisor] Evaluating situation...");
+  console.log("\n👔 [主管] 评估情况...");
 
   // Build context for supervisor
   const contextMessages = [
@@ -238,12 +238,12 @@ async function supervisorNode(state: TeamStateType) {
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     decision = jsonMatch ? JSON.parse(jsonMatch[0]) : { next: "FINISH", instructions: "", reason: "Could not parse response" };
   } catch {
-    console.log("   ⚠️  Could not parse decision, finishing...");
+    console.log("   ⚠️  无法解析决策，结束流程...");
     decision = { next: "FINISH", instructions: "", reason: "Parse error" };
   }
 
-  console.log(`   → Decision: ${decision.next}`);
-  console.log(`   → Reason: ${decision.reason}`);
+  console.log(`   → 决策: ${decision.next}`);
+  console.log(`   → 原因: ${decision.reason}`);
 
   return {
     messages: [new AIMessage(`[Supervisor] ${JSON.stringify(decision)}`)],
@@ -252,7 +252,7 @@ async function supervisorNode(state: TeamStateType) {
 }
 
 async function researcherNode(state: TeamStateType) {
-  console.log("\n🔬 [Researcher] Working...");
+  console.log("\n🔬 [研究员] 工作中...");
 
   // Get supervisor's instructions
   const lastMessage = state.messages[state.messages.length - 1];
@@ -287,7 +287,7 @@ async function researcherNode(state: TeamStateType) {
   }
 
   const output = response.content as string;
-  console.log(`   ✅ Research complete: ${output.slice(0, 100)}...`);
+  console.log(`   ✅ 研究完成: ${output.slice(0, 100)}...`);
 
   return {
     messages: [new AIMessage(`[Researcher] ${output}`)],
@@ -297,7 +297,7 @@ async function researcherNode(state: TeamStateType) {
 }
 
 async function writerNode(state: TeamStateType) {
-  console.log("\n✍️  [Writer] Working...");
+  console.log("\n✍️  [写手] 工作中...");
 
   // Get supervisor's instructions and research context
   const lastMessage = state.messages[state.messages.length - 1];
@@ -336,7 +336,7 @@ async function writerNode(state: TeamStateType) {
   }
 
   const output = response.content as string;
-  console.log(`   ✅ Writing complete: ${output.slice(0, 100)}...`);
+  console.log(`   ✅ 写作完成: ${output.slice(0, 100)}...`);
 
   return {
     messages: [new AIMessage(`[Writer] ${output}`)],
@@ -355,7 +355,7 @@ function routeFromSupervisor(
   const worker = state.currentWorker;
 
   if (!worker || worker === "FINISH") {
-    console.log("\n🏁 [Router] Task complete!");
+    console.log("\n🏁 [路由器] 任务完成!");
     return END;
   }
 
@@ -401,14 +401,14 @@ const app = graph.compile();
  * ======================================================================== */
 
 async function main() {
-  console.log("👥 Multi-Agent Team Collaboration Demo");
+  console.log("👥 多 Agent 团队协作演示");
   console.log("=".repeat(60));
-  console.log("Supervisor delegates tasks to Researcher and Writer\n");
+  console.log("主管将任务分发给研究员和写手\n");
 
   const query =
     "Research the top AI trends in 2024 and write a short blog post about them.";
 
-  console.log(`📝 User Request: ${query}`);
+  console.log(`📝 用户请求: ${query}`);
   console.log("=".repeat(60));
 
   const result = await app.invoke({
@@ -416,7 +416,7 @@ async function main() {
   });
 
   console.log("\n" + "=".repeat(60));
-  console.log("📊 Final Work Log:");
+  console.log("📊 最终工作日志:");
   console.log("-".repeat(60));
 
   for (const [worker, output] of Object.entries(result.workLog)) {
@@ -425,7 +425,7 @@ async function main() {
   }
 
   console.log("\n" + "=".repeat(60));
-  console.log("✅ Task Complete!");
+  console.log("✅ 任务完成!");
   console.log("=".repeat(60));
 }
 

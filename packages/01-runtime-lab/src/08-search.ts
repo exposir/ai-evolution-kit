@@ -216,7 +216,7 @@ function prompt(question: string): Promise<string> {
 
 async function main() {
   console.log("=".repeat(50));
-  console.log("  Chapter 8: RAG - Search & Chat");
+  console.log("  第八章: RAG - 搜索与对话");
   console.log("  基于向量检索的知识增强对话");
   console.log("=".repeat(50));
   console.log();
@@ -242,7 +242,7 @@ async function main() {
       const reply = await chat(userInput);
       console.log(`\nAI: ${reply}\n`);
     } catch (error) {
-      console.error("Error:", error);
+      console.error("错误:", error);
     }
   }
 }

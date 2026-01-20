@@ -39,7 +39,7 @@ export class ChatService {
     });
 
     this.model = this.configService.get<string>('CHAT_MODEL') || this.configService.get<string>('OPENAI_MODEL') || 'gpt-4o-mini';
-    this.logger.log(`ChatService initialized with model: ${this.model}`);
+    this.logger.log(`ChatService 初始化完成，模型: ${this.model}`);
   }
 
   /* ─────────────────────────────────────────────────────────────────────────
@@ -49,7 +49,7 @@ export class ChatService {
     const sessionId = dto.sessionId || randomUUID();
     const model = dto.model || this.model;
 
-    this.logger.debug(`Processing chat request for session: ${sessionId}`);
+    this.logger.debug(`处理会话请求: ${sessionId}`);
 
     const messages = dto.messages.map((m) => ({
       role: m.role,

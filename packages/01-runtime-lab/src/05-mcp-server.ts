@@ -170,14 +170,14 @@ export class MapServer {
 
         default:
           return {
-            error: { code: -32601, message: `Method not found: ${method}` },
+            error: { code: -32601, message: `方法未找到: ${method}` },
           };
       }
     } catch (error) {
       return {
         error: {
           code: -32602,
-          message: error instanceof Error ? error.message : 'Invalid params',
+          message: error instanceof Error ? error.message : '无效参数',
         },
       };
     }
@@ -192,7 +192,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const server = new MapServer();
 
   console.log('='.repeat(50));
-  console.log('  Chapter 5: MCP Server');
+  console.log('  第五章: MCP 服务端');
   console.log('='.repeat(50));
   console.log('\n服务器信息:');
   console.log(JSON.stringify(server.getServerInfo(), null, 2));
@@ -215,5 +215,5 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   console.log(JSON.stringify(result2, null, 2));
 
   console.log('\n[提示] 这是 MCP Server 的独立演示');
-  console.log('[提示] 运行 Chapter 6 查看 Client 如何连接 Server');
+  console.log('[提示] 运行第六章查看 Client 如何连接 Server');
 }

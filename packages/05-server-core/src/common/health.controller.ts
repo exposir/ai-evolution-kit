@@ -23,10 +23,10 @@ export class HealthController {
     const redisOk = await this.memoryService.ping();
 
     return {
-      status: 'ok',
+      status: '正常',
       timestamp: new Date().toISOString(),
       services: {
-        redis: redisOk ? 'connected' : 'disconnected',
+        redis: redisOk ? '已连接' : '已断开',
       },
     };
   }

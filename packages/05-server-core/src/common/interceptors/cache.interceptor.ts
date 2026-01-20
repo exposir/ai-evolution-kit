@@ -51,11 +51,11 @@ export class CacheInterceptor implements NestInterceptor {
     // 尝试从缓存读取
     const cached = await this.memoryService.get<unknown>(cacheKey);
     if (cached) {
-      this.logger.debug(`Cache HIT: ${cacheKey}`);
+      this.logger.debug(`缓存命中: ${cacheKey}`);
       return of(cached);
     }
 
-    this.logger.debug(`Cache MISS: ${cacheKey}`);
+    this.logger.debug(`缓存未命中: ${cacheKey}`);
 
     // 执行请求并缓存结果
     return next.handle().pipe(

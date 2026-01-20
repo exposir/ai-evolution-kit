@@ -260,7 +260,7 @@ export async function processDocument(
   options: Partial<SplitterOptions> = {}
 ): Promise<Chunk[]> {
   console.log('='.repeat(50));
-  console.log('  Chapter 9: Doc Cleaner');
+  console.log('  第九章: 文档清洗器');
   console.log('='.repeat(50));
   console.log();
 
@@ -342,7 +342,7 @@ async function main() {
   });
 
   console.log(`\n[完成] 共生成 ${chunks.length} 个 Chunks`);
-  console.log('[提示] 这些 Chunks 将在 Chapter 10 中存入向量数据库');
+  console.log('[提示] 这些 Chunks 将在第十章中存入向量数据库');
 }
 
 // 运行

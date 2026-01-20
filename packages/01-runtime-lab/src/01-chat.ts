@@ -71,7 +71,7 @@ function prompt(question: string): Promise<string> {
 // 主循环
 async function main() {
   console.log('='.repeat(50));
-  console.log('  Chapter 1: Bare Metal Chat');
+  console.log('  第一章: 裸金属对话');
   console.log('  输入 "exit" 退出');
   console.log('='.repeat(50));
   console.log();
@@ -94,7 +94,7 @@ async function main() {
       console.log(`AI: ${reply}`);
       console.log();
     } catch (error) {
-      console.error('Error:', error);
+      console.error('错误:', error);
     }
   }
 }

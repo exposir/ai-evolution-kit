@@ -73,7 +73,7 @@ export class MemoryService implements OnModuleInit, OnModuleDestroy {
 
   async onModuleInit() {
     if (!this.enabled) {
-      this.logger.warn('Redis not configured, memory service disabled');
+      this.logger.warn('未配置 Redis，内存服务已禁用');
       return;
     }
 
@@ -84,18 +84,18 @@ export class MemoryService implements OnModuleInit, OnModuleDestroy {
     });
 
     this.redis.on('connect', () => {
-      this.logger.log('Redis connected');
+      this.logger.log('Redis 已连接');
     });
 
     this.redis.on('error', (err) => {
-      this.logger.error(`Redis error: ${err.message}`);
+      this.logger.error(`Redis 错误: ${err.message}`);
     });
   }
 
   async onModuleDestroy() {
     if (this.redis) {
       await this.redis.quit();
-      this.logger.log('Redis disconnected');
+      this.logger.log('Redis 已断开');
     }
   }
 
@@ -116,7 +116,7 @@ export class MemoryService implements OnModuleInit, OnModuleDestroy {
     try {
       return JSON.parse(data) as ConversationState;
     } catch {
-      this.logger.warn(`Failed to parse conversation: ${sessionId}`);
+      this.logger.warn(`解析会话失败: ${sessionId}`);
       return null;
     }
   }

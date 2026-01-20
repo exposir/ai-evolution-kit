@@ -50,7 +50,7 @@ let callCount = 0; // Track calls for deterministic demo
 const runCodeTool = tool(
   async ({ code }) => {
     callCount++;
-    console.log(`   [Call #${callCount}] Executing code...`);
+    console.log(`   [调用 #${callCount}] 执行代码...`);
 
     // Simulate flaky behavior: first 2 calls fail
     if (callCount <= 2) {
@@ -59,13 +59,13 @@ const runCodeTool = tool(
         "RuntimeError: division by zero",
       ];
       const error = errors[callCount - 1];
-      console.log(`   ❌ Error: ${error}`);
+      console.log(`   ❌ 错误: ${error}`);
       return `Error: ${error}`;
     }
 
     // Third call succeeds
-    console.log("   ✅ Code executed successfully");
-    return `Success: Output is 42. Code executed without errors.`;
+    console.log("   ✅ 代码执行成功");
+    return `成功: 输出为 42。代码执行无错误。`;
   },
   {
     name: "run_code",
@@ -101,21 +101,21 @@ const model = new ChatOpenAI({
  * ======================================================================== */
 
 async function agentNode(state: AgentStateType) {
-  console.log(`\n🤖 [Agent Node] Attempt #${state.retryCount + 1}`);
+  console.log(`\n🤖 [Agent 节点] 尝试 #${state.retryCount + 1}`);
 
   // If there was a previous error, inject it as context
   let messagesWithContext = [...state.messages];
 
   if (state.lastError && state.retryCount > 0) {
-    console.log(`   → Previous error: ${state.lastError}`);
-    console.log("   → Agent will try to fix the code...");
+    console.log(`   → 上次错误: ${state.lastError}`);
+    console.log("   → Agent 将尝试修复代码...");
 
     // Add error feedback to help the model correct itself
     messagesWithContext.push(
       new SystemMessage(
-        `Your previous code failed with: "${state.lastError}". ` +
-          `Please analyze the error and try again with corrected code. ` +
-          `Attempt ${state.retryCount + 1} of ${MAX_RETRIES}.`
+        `你的上次代码失败了: "${state.lastError}"。` +
+          `请分析错误并使用修正后的代码重试。` +
+          `尝试 ${state.retryCount + 1}/${MAX_RETRIES}。`
       )
     );
   }
@@ -124,10 +124,10 @@ async function agentNode(state: AgentStateType) {
 
   if (response.tool_calls && response.tool_calls.length > 0) {
     console.log(
-      `   → Calling: ${response.tool_calls.map((t) => t.name).join(", ")}`
+      `   → 调用: ${response.tool_calls.map((t) => t.name).join(", ")}`
     );
   } else {
-    console.log("   → Responding directly (no tool call)");
+    console.log("   → 直接回复 (无工具调用)");
   }
 
   return { messages: [response] };
@@ -184,18 +184,18 @@ function shouldRetry(state: AgentStateType): "agent" | typeof END {
     // Check retry limit
     if (state.retryCount >= MAX_RETRIES) {
       console.log(
-        `\n⛔ [Router] Max retries (${MAX_RETRIES}) reached. Giving up.`
+        `\n⛔ [路由器] 已达最大重试次数 (${MAX_RETRIES})。放弃。`
       );
       return END;
     }
     console.log(
-      `\n🔄 [Router] Error detected, retrying... (${state.retryCount}/${MAX_RETRIES})`
+      `\n🔄 [路由器] 检测到错误，重试中... (${state.retryCount}/${MAX_RETRIES})`
     );
     return "agent";
   }
 
   // Success - no error
-  console.log("\n✅ [Router] Success! Ending loop.");
+  console.log("\n✅ [路由器] 成功！结束循环。");
   return END;
 }
 
@@ -231,9 +231,9 @@ const app = graph.compile();
  * ======================================================================== */
 
 async function main() {
-  console.log("🔄 Self-Correcting Agent Demo");
+  console.log("🔄 自我修复 Agent 演示");
   console.log("=".repeat(60));
-  console.log("This agent will retry failed code execution up to 3 times.\n");
+  console.log("此 Agent 将在代码执行失败时自动重试最多 3 次。\n");
 
   // Reset call counter for demo
   callCount = 0;
@@ -247,12 +247,12 @@ async function main() {
   });
 
   console.log("\n" + "=".repeat(60));
-  console.log("📊 Final State:");
-  console.log(`   Retry count: ${result.retryCount}`);
-  console.log(`   Last error: ${result.lastError || "None"}`);
+  console.log("📊 最终状态:");
+  console.log(`   重试次数: ${result.retryCount}`);
+  console.log(`   最后错误: ${result.lastError || "无"}`);
 
   const lastMessage = result.messages[result.messages.length - 1];
-  console.log(`   Final message: ${lastMessage.content}`);
+  console.log(`   最终消息: ${lastMessage.content}`);
   console.log("=".repeat(60));
 }
 

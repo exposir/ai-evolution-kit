@@ -44,9 +44,9 @@ async function bootstrap() {
   const port = process.env.PORT ?? 3001; // 避免与 Next.js 3000 冲突
   await app.listen(port);
 
-  logger.log(`🚀 Server running on http://localhost:${port}`);
-  logger.log(`📡 Chat API: POST http://localhost:${port}/chat`);
-  logger.log(`📡 Stream API: POST http://localhost:${port}/chat/stream`);
+  logger.log(`🚀 服务器运行于 http://localhost:${port}`);
+  logger.log(`📡 聊天 API: POST http://localhost:${port}/chat`);
+  logger.log(`📡 流式 API: POST http://localhost:${port}/chat/stream`);
 }
 
 bootstrap();

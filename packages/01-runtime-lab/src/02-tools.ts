@@ -221,7 +221,7 @@ function prompt(question: string): Promise<string> {
 
 async function main() {
   console.log("=".repeat(50));
-  console.log("  Chapter 2: Tool Definition");
+  console.log("  第二章: 工具定义");
   console.log('  尝试问: "1 加 1 等于几" 或 "帮我计算 100 除以 5"');
   console.log('  输入 "exit" 退出');
   console.log("=".repeat(50));
@@ -241,7 +241,7 @@ async function main() {
     try {
       await chat(userInput);
     } catch (error) {
-      console.error("Error:", error);
+      console.error("错误:", error);
     }
   }
 }

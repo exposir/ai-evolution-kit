@@ -88,7 +88,7 @@ export default function Ch17Page() {
                 >
                   {/* Role badge */}
                   <div className="text-xs opacity-60 mb-1">
-                    {msg.role === "user" ? "You" : "AI"}
+                    {msg.role === "user" ? "你" : "AI"}
                   </div>
 
                   {/* Content with cursor effect for streaming */}

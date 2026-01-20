@@ -45,7 +45,7 @@ export class ChatController {
   async chat(
     @Body(new ValidationPipe({ transform: true })) dto: ChatRequestDto,
   ): Promise<ChatResponseDto> {
-    this.logger.log(`Received chat request with ${dto.messages.length} messages`);
+    this.logger.log(`收到聊天请求，消息数: ${dto.messages.length}`);
     return this.chatService.chat(dto);
   }
 
@@ -60,7 +60,7 @@ export class ChatController {
     @Body(new ValidationPipe({ transform: true })) dto: ChatRequestDto,
     @Res() res: Response,
   ): Promise<void> {
-    this.logger.log(`Received stream request with ${dto.messages.length} messages`);
+    this.logger.log(`收到流式请求，消息数: ${dto.messages.length}`);
 
     // SSE 响应头
     res.setHeader('Content-Type', 'text/event-stream');
@@ -76,7 +76,7 @@ export class ChatController {
       // 流结束标记
       res.write(`data: [DONE]\n\n`);
     } catch (error) {
-      this.logger.error(`Stream error: ${error.message}`);
+      this.logger.error(`流式传输错误: ${error.message}`);
       res.write(`data: ${JSON.stringify({ error: error.message })}\n\n`);
     } finally {
       res.end();

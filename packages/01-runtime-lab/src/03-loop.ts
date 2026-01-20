@@ -79,7 +79,7 @@ function runTool(name: string, args: unknown): string {
         result = a * b;
         break;
       case 'divide':
-        if (b === 0) return 'Error: 除数不能为零';
+        if (b === 0) return '错误: 除数不能为零';
         result = a / b;
         break;
     }
@@ -88,7 +88,7 @@ function runTool(name: string, args: unknown): string {
     return result.toString();
   }
 
-  return `Error: 未知工具 ${name}`;
+  return `错误: 未知工具 ${name}`;
 }
 
 const messages: ChatCompletionMessageParam[] = [];
@@ -168,7 +168,7 @@ function prompt(question: string): Promise<string> {
 
 async function main() {
   console.log('='.repeat(50));
-  console.log('  Chapter 3: The Loop (Agent 原型)');
+  console.log('  第三章: 循环 (Agent 原型)');
   console.log('  现在 AI 可以真正 "执行" 计算了！');
   console.log('  尝试: "计算 123 + 456" 或 "100 除以 7 等于多少"');
   console.log('  输入 "exit" 退出');
@@ -190,7 +190,7 @@ async function main() {
       const reply = await chat(userInput);
       console.log(`AI: ${reply}\n`);
     } catch (error) {
-      console.error('Error:', error);
+      console.error('错误:', error);
     }
   }
 }

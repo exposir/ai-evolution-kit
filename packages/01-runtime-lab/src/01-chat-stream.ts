@@ -67,13 +67,13 @@ async function chatStream(userInput: string): Promise<string> {
 
     // 处理拒绝 (安全过滤)
     if (delta?.refusal) {
-      console.log(`\n[Safety Refusal]: ${delta.refusal}`);
-      fullResponse += `(Refused: ${delta.refusal})`;
+      console.log(`\n[安全拒绝]: ${delta.refusal}`);
+      fullResponse += `(已拒绝: ${delta.refusal})`;
     }
 
     // 检查结束原因
     if (finishReason === "content_filter") {
-      console.log("\n[Warning]: Response cut off by content filter.");
+      console.log("\n[警告]: 响应被内容过滤器截断。");
     }
   }
 
@@ -104,7 +104,7 @@ function prompt(question: string): Promise<string> {
 // 主循环
 async function main() {
   console.log("=".repeat(50));
-  console.log("  Chapter 1: Bare Metal Chat (Stream Mode)");
+  console.log("  第一章: 裸金属对话 (流式模式)");
   console.log('  输入 "exit" 退出');
   console.log("=".repeat(50));
   console.log();
@@ -127,7 +127,7 @@ async function main() {
       await chatStream(userInput);
       console.log(); // 额外的空行分隔
     } catch (error) {
-      console.error("Error:", error);
+      console.error("错误:", error);
     }
   }
 }

@@ -225,7 +225,7 @@ export class SmartSearch {
 
 async function main() {
   console.log('='.repeat(50));
-  console.log('  Chapter 11: Smart Search');
+  console.log('  第十一章: 智能搜索');
   console.log('='.repeat(50));
   console.log();
 
@@ -235,7 +235,7 @@ async function main() {
     console.log('  SUPABASE_URL');
     console.log('  SUPABASE_SERVICE_KEY');
     console.log('  OPENAI_API_KEY');
-    console.log('\n[提示] 请先运行 Chapter 10 插入数据');
+    console.log('\n[提示] 请先运行第十章插入数据');
     return;
   }
 

@@ -19,17 +19,49 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
-import 'dotenv/config';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import OpenAI from 'openai';
-import { Chunk, processDocument } from './09-doc-cleaner.js';
+/**
+ * 💡 Supabase 科普：
+ * 本质：开源的 Firebase 替代品，基于 PostgreSQL 构建的 BaaS (Backend-as-a-Service)。
+ * 核心功能：
+ * 1. Database: 完整的 PostgreSQL 数据库 (本项目利用 pgvector 扩展实现向量存储)。
+ * 2. Auth: 开箱即用的用户认证 (JWT/OAuth/RLS)。
+ * 3. Auto API: 基于表结构自动生成 REST/GraphQL API (本代码用的就是这种)。
+ * 4. Realtime: 数据库变更实时订阅 (WebSocket)。
+ * 5. Storage: 文件对象存储。
+ * 6. Edge Functions: 服务端无服务器函数 (Deno)。
+ *
+ * 在本架构中的角色：
+ * 作为 AI 的 "长期记忆体"，利用 PostgreSQL + pgvector 存储和检索 Embedding 向量数据。
+ */
+
+// Supabase 是开源的吗
+// 答：是的，它是 "Open Source Firebase Alternative"。
+// 1. 代码完全开源：https://github.com/supabase/supabase (主仓库)
+// 2. 可私有化部署：支持通过 Docker Compose 在你可以控制的服务器上自托管 (Self-host)。
+// 3. 无厂商锁定：核心是标准的 PostgreSQL，随时可以导出数据迁移走。
+// 4. 为什么全是 TypeScript？
+//    你看到的 supabase/supabase 主仓库主要是 "前端/胶水层" (Studio 管理后台 + JS SDK + 文档)。
+//    硬核后端其实是多语言天团：Auth (Go), Realtime (Elixir), PostgREST (Haskell), Database (C)。
+// 5. 后端核心仓库在哪？
+//    - Auth (Go): https://github.com/supabase/auth (原 GoTrue)
+//    - Realtime (Elixir): https://github.com/supabase/realtime (高并发 WebSocket)
+//    - Storage (Node.js/TS): https://github.com/supabase/storage-api (对象存储层)
+//    - PostgREST (Haskell): https://github.com/PostgREST/postgrest (外部开源神作)
+//    - Postgres-Meta (TS): https://github.com/supabase/postgres-meta (管理数据库结构的 API)
+//    - pg_graphql (Rust): https://github.com/supabase/pg_graphql (Postgres 的 GraphQL 扩展)
+
+import "dotenv/config";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import OpenAI from "openai";
+import { Chunk, processDocument } from "./09-doc-cleaner.js";
 
 // ============================================
 // 环境变量检查
 // ============================================
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY;
+const SUPABASE_KEY =
+  process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const OPENAI_BASE_URL = process.env.OPENAI_BASE_URL;
 
@@ -106,16 +138,19 @@ export class VectorDB {
 
   constructor() {
     if (!SUPABASE_URL || !SUPABASE_KEY) {
-      throw new Error('缺少 SUPABASE_URL 或 SUPABASE_KEY 环境变量');
+      throw new Error("缺少 SUPABASE_URL 或 SUPABASE_KEY 环境变量");
     }
     if (!OPENAI_API_KEY) {
-      throw new Error('缺少 OPENAI_API_KEY 环境变量');
+      throw new Error("缺少 OPENAI_API_KEY 环境变量");
     }
 
     this.supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-    this.openai = new OpenAI({ apiKey: OPENAI_API_KEY, baseURL: OPENAI_BASE_URL });
+    this.openai = new OpenAI({
+      apiKey: OPENAI_API_KEY,
+      baseURL: OPENAI_BASE_URL,
+    });
 
-    console.log('[VectorDB] 初始化完成');
+    console.log("[VectorDB] 初始化完成");
     console.log(`[VectorDB] Supabase URL: ${SUPABASE_URL}`);
   }
 
@@ -124,7 +159,7 @@ export class VectorDB {
    */
   async getEmbedding(text: string): Promise<number[]> {
     const response = await this.openai.embeddings.create({
-      model: process.env.EMBEDDING_MODEL || 'text-embedding-3-small',
+      model: process.env.EMBEDDING_MODEL || "text-embedding-3-small",
       input: text,
     });
     return response.data[0].embedding;
@@ -136,16 +171,18 @@ export class VectorDB {
   async batchGetEmbeddings(
     texts: string[],
     batchSize = 20,
-    delayMs = 500
+    delayMs = 500,
   ): Promise<number[][]> {
     const embeddings: number[][] = [];
 
     for (let i = 0; i < texts.length; i += batchSize) {
       const batch = texts.slice(i, i + batchSize);
-      console.log(`[Embedding] 处理批次 ${Math.floor(i / batchSize) + 1}/${Math.ceil(texts.length / batchSize)}`);
+      console.log(
+        `[Embedding] 处理批次 ${Math.floor(i / batchSize) + 1}/${Math.ceil(texts.length / batchSize)}`,
+      );
 
       const response = await this.openai.embeddings.create({
-        model: process.env.EMBEDDING_MODEL || 'text-embedding-3-small',
+        model: process.env.EMBEDDING_MODEL || "text-embedding-3-small",
         input: batch,
       });
 
@@ -182,12 +219,13 @@ export class VectorDB {
     for (let i = 0; i < rows.length; i += batchSize) {
       const batch = rows.slice(i, i + batchSize);
 
-      const { error } = await this.supabase
-        .from('documents')
-        .insert(batch);
+      const { error } = await this.supabase.from("documents").insert(batch);
 
       if (error) {
-        console.error(`[Insert] 批次 ${i / batchSize + 1} 失败:`, error.message);
+        console.error(
+          `[Insert] 批次 ${i / batchSize + 1} 失败:`,
+          error.message,
+        );
         throw error;
       }
 
@@ -202,14 +240,14 @@ export class VectorDB {
    */
   async clearDocuments(): Promise<void> {
     const { error } = await this.supabase
-      .from('documents')
+      .from("documents")
       .delete()
-      .neq('id', 0); // 删除所有记录
+      .neq("id", 0); // 删除所有记录
 
     if (error) {
       throw new Error(`清空失败: ${error.message}`);
     }
-    console.log('[VectorDB] 文档表已清空');
+    console.log("[VectorDB] 文档表已清空");
   }
 
   /**
@@ -217,8 +255,8 @@ export class VectorDB {
    */
   async getDocumentCount(): Promise<number> {
     const { count, error } = await this.supabase
-      .from('documents')
-      .select('*', { count: 'exact', head: true });
+      .from("documents")
+      .select("*", { count: "exact", head: true });
 
     if (error) {
       throw new Error(`查询失败: ${error.message}`);
@@ -232,29 +270,29 @@ export class VectorDB {
 // ============================================
 
 async function main() {
-  console.log('='.repeat(50));
-  console.log('  Chapter 10: Vector DB');
-  console.log('='.repeat(50));
+  console.log("=".repeat(50));
+  console.log("  第十章: 向量数据库");
+  console.log("=".repeat(50));
   console.log();
 
   // 检查环境变量
   if (!SUPABASE_URL || !SUPABASE_KEY) {
-    console.log('[错误] 请在 .env 中配置以下环境变量:');
-    console.log('  SUPABASE_URL=https://xxx.supabase.co');
-    console.log('  SUPABASE_SERVICE_KEY=eyJxxx...');
-    console.log('\n[提示] 请先在 Supabase 后台执行以下 SQL:');
+    console.log("[错误] 请在 .env 中配置以下环境变量:");
+    console.log("  SUPABASE_URL=https://xxx.supabase.co");
+    console.log("  SUPABASE_SERVICE_KEY=eyJxxx...");
+    console.log("\n[提示] 请先在 Supabase 后台执行以下 SQL:");
     console.log(SETUP_SQL);
     return;
   }
 
   if (!OPENAI_API_KEY) {
-    console.log('[错误] 请在 .env 中配置 OPENAI_API_KEY');
+    console.log("[错误] 请在 .env 中配置 OPENAI_API_KEY");
     return;
   }
 
   try {
     // 1. 处理文档
-    const chunks = await processDocument('../sample.md', {
+    const chunks = await processDocument("../sample.md", {
       chunkSize: 300,
       chunkOverlap: 50,
     });
@@ -274,10 +312,10 @@ async function main() {
     console.log(`\n[状态] 插入后文档数: ${countAfter}`);
     console.log(`[状态] 新增: ${countAfter - countBefore} 条`);
 
-    console.log('\n[完成] 向量数据已持久化到 Supabase');
-    console.log('[提示] 运行 Chapter 11 测试检索功能');
+    console.log("\n[完成] 向量数据已持久化到 Supabase");
+    console.log("[提示] 运行第十一章测试检索功能");
   } catch (error) {
-    console.error('[错误]', error);
+    console.error("[错误]", error);
   }
 }
 

@@ -115,7 +115,7 @@ async function getEmbedding(text: string): Promise<number[]> {
 
 async function buildKnowledgeBase() {
   console.log("=".repeat(50));
-  console.log("  Chapter 7: RAG - Embedding");
+  console.log("  第七章: RAG - 向量嵌入");
   console.log("  构建向量知识库");
   console.log("=".repeat(50));
   console.log();
@@ -173,7 +173,7 @@ async function buildKnowledgeBase() {
     );
   }
 
-  console.log("\n[提示] 运行 Chapter 8 (08-search.ts) 来测试向量检索");
+  console.log("[提示] 运行第八章 (08-search.ts) 来测试向量检索");
 }
 
 // 导出供 Chapter 8 使用

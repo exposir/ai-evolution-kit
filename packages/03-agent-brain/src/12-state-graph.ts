@@ -113,24 +113,24 @@ const model = new ChatOpenAI({
  * ======================================================================== */
 
 async function agentNode(state: AgentStateType) {
-  console.log("\n🤖 [Agent Node] Thinking...");
+  console.log("\n🤖 [Agent 节点] 思考中...");
 
   const response = await model.invoke(state.messages);
 
   // Debug output
   if (response.tool_calls && response.tool_calls.length > 0) {
     console.log(
-      `   → Decided to call: ${response.tool_calls.map((t) => t.name).join(", ")}`
+      `   → 决定调用: ${response.tool_calls.map((t) => t.name).join(", ")}`
     );
   } else {
-    console.log("   → Decided to respond directly");
+    console.log("   → 决定直接回复");
   }
 
   return { messages: [response] };
 }
 
 async function toolNode(state: AgentStateType) {
-  console.log("\n🔧 [Tool Node] Executing tools...");
+  console.log("\n🔧 [工具节点] 执行工具...");
 
   const lastMessage = state.messages[state.messages.length - 1] as AIMessage;
   const toolCalls = lastMessage.tool_calls || [];
@@ -138,10 +138,10 @@ async function toolNode(state: AgentStateType) {
   const results: ToolMessage[] = [];
 
   for (const call of toolCalls) {
-    console.log(`   → Running: ${call.name}(${JSON.stringify(call.args)})`);
+    console.log(`   → 运行: ${call.name}(${JSON.stringify(call.args)})`);
 
     const result = await executeTool(call.name, call.args as Record<string, unknown>);
-    console.log(`   ← Result: ${result}`);
+    console.log(`   ← 结果: ${result}`);
 
     results.push(
       new ToolMessage({
@@ -203,7 +203,7 @@ const app = graph.compile();
 
 async function runAgent(query: string) {
   console.log("\n" + "=".repeat(60));
-  console.log(`📝 Query: ${query}`);
+  console.log(`📝 查询: ${query}`);
   console.log("=".repeat(60));
 
   const result = await app.invoke({
@@ -212,7 +212,7 @@ async function runAgent(query: string) {
 
   const lastMessage = result.messages[result.messages.length - 1];
   console.log("\n" + "-".repeat(60));
-  console.log(`✅ Final Answer: ${lastMessage.content}`);
+  console.log(`✅ 最终答案: ${lastMessage.content}`);
   console.log("-".repeat(60));
 
   return lastMessage.content;
@@ -223,7 +223,7 @@ async function runAgent(query: string) {
  * ======================================================================== */
 
 async function main() {
-  console.log("🧠 LangGraph State Graph Demo");
+  console.log("🧠 LangGraph 状态图演示");
   console.log("=" + "=".repeat(59));
 
   // Test 1: Tool usage (calculator)

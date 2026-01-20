@@ -63,13 +63,13 @@ export class ApiKeyGuard implements CanActivate {
     const token = this.extractToken(request);
 
     if (!token) {
-      this.logger.warn('Missing API key in request');
-      throw new UnauthorizedException('API key required');
+      this.logger.warn('请求中缺少 API 密钥');
+      throw new UnauthorizedException('需要 API 密钥');
     }
 
     if (token !== this.apiKey) {
-      this.logger.warn('Invalid API key');
-      throw new UnauthorizedException('Invalid API key');
+      this.logger.warn('无效的 API 密钥');
+      throw new UnauthorizedException('无效的 API 密钥');
     }
 
     return true;

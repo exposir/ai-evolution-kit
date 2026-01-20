@@ -47,7 +47,7 @@ function StockCard({ data }: { data: { symbol: string; price: string; change: nu
     <div className="bg-white border rounded-xl p-6 shadow-lg max-w-sm">
       <div className="flex justify-between items-start">
         <div>
-          <h3 className="text-gray-500 text-sm">Stock</h3>
+          <h3 className="text-gray-500 text-sm">股票</h3>
           <p className="text-2xl font-bold">{data.symbol}</p>
         </div>
         <div className={`px-3 py-1 rounded-full text-sm font-medium ${isPositive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
@@ -55,7 +55,7 @@ function StockCard({ data }: { data: { symbol: string; price: string; change: nu
         </div>
       </div>
       <p className="text-4xl font-bold mt-4">${data.price}</p>
-      <p className="text-gray-500 text-sm mt-2">Vol: {data.volume.toLocaleString()}</p>
+      <p className="text-gray-500 text-sm mt-2">成交量: {data.volume.toLocaleString()}</p>
     </div>
   );
 }
@@ -80,7 +80,7 @@ function ChartCard({ data }: { data: { title: string; type: string; data: { labe
           </div>
         ))}
       </div>
-      <p className="text-xs text-gray-400 mt-4">Chart type: {data.type}</p>
+      <p className="text-xs text-gray-400 mt-4">图表类型: {data.type}</p>
     </div>
   );
 }

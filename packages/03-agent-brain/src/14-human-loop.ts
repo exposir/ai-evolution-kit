@@ -111,18 +111,18 @@ const model = new ChatOpenAI({
  * ======================================================================== */
 
 async function agentNode(state: AgentStateType) {
-  console.log("\n🤖 [Agent Node] Processing...");
+  console.log("\n🤖 [Agent 节点] 处理中...");
 
   const response = await model.invoke(state.messages);
 
   if (response.tool_calls && response.tool_calls.length > 0) {
     const toolNames = response.tool_calls.map((t) => t.name);
-    console.log(`   → Planning to call: ${toolNames.join(", ")}`);
+    console.log(`   → 计划调用: ${toolNames.join(", ")}`);
 
     // Flag sensitive operations
     const sensitiveOps = toolNames.filter((n) => SENSITIVE_TOOLS.has(n));
     if (sensitiveOps.length > 0) {
-      console.log(`   ⚠️  Sensitive operations detected: ${sensitiveOps.join(", ")}`);
+      console.log(`   ⚠️  检测到敏感操作: ${sensitiveOps.join(", ")}`);
     }
   }
 
@@ -130,7 +130,7 @@ async function agentNode(state: AgentStateType) {
 }
 
 async function toolNode(state: AgentStateType) {
-  console.log("\n🔧 [Tool Node] Executing approved operations...");
+  console.log("\n🔧 [工具节点] 执行已批准的操作...");
 
   const lastMessage = state.messages[state.messages.length - 1] as AIMessage;
   const toolCalls = lastMessage.tool_calls || [];
@@ -138,7 +138,7 @@ async function toolNode(state: AgentStateType) {
   const results: ToolMessage[] = [];
 
   for (const call of toolCalls) {
-    console.log(`   → Executing: ${call.name}`);
+    console.log(`   → 执行: ${call.name}`);
 
     const result = await executeTool(call.name, call.args as Record<string, unknown>);
     results.push(
@@ -210,14 +210,14 @@ async function askHuman(question: string): Promise<string> {
 function formatToolCallsForReview(messages: BaseMessage[]): string {
   const lastMessage = messages[messages.length - 1] as AIMessage;
   if (!lastMessage.tool_calls || lastMessage.tool_calls.length === 0) {
-    return "No pending tool calls.";
+    return "无待处理的工具调用。";
   }
 
   return lastMessage.tool_calls
     .map((call, i) => {
       const isSensitive = SENSITIVE_TOOLS.has(call.name);
-      const badge = isSensitive ? "🔴 SENSITIVE" : "🟢 SAFE";
-      return `  ${i + 1}. [${badge}] ${call.name}\n     Args: ${JSON.stringify(call.args, null, 2).replace(/\n/g, "\n     ")}`;
+      const badge = isSensitive ? "🔴 敏感" : "🟢 安全";
+      return `  ${i + 1}. [${badge}] ${call.name}\n     参数: ${JSON.stringify(call.args, null, 2).replace(/\n/g, "\n     ")}`;
     })
     .join("\n\n");
 }
@@ -228,9 +228,9 @@ function formatToolCallsForReview(messages: BaseMessage[]): string {
 
 async function runHumanInLoop(query: string) {
   console.log("\n" + "=".repeat(60));
-  console.log("🧑‍💼 Human-in-the-Loop Agent");
+  console.log("🧑‍💼 人机协作 Agent");
   console.log("=".repeat(60));
-  console.log(`\n📝 Query: ${query}\n`);
+  console.log(`\n📝 查询: ${query}\n`);
 
   // Unique thread ID for this conversation
   const config = {
@@ -253,15 +253,15 @@ async function runHumanInLoop(query: string) {
     // Check if we're at an interrupt point
     if (snapshot.next.length === 0) {
       // No more nodes to execute - we're done
-      console.log("\n✅ Execution complete.");
+      console.log("\n✅ 执行完成。");
       break;
     }
 
     // We're paused before a node (tools)
     console.log("\n" + "-".repeat(60));
-    console.log("⏸️  PAUSED - Human approval required");
+    console.log("⏸️  已暂停 - 需要人工审批");
     console.log("-".repeat(60));
-    console.log("\n📋 Pending operations:\n");
+    console.log("\n📋 待处理操作:\n");
     console.log(formatToolCallsForReview(result.messages));
 
     // Ask for human approval
@@ -270,25 +270,25 @@ async function runHumanInLoop(query: string) {
     );
 
     if (answer === "yes" || answer === "y") {
-      console.log("\n✅ Approved! Continuing execution...");
+      console.log("\n✅ 已批准！继续执行...");
       // Resume execution from where we left off
       result = await app.invoke(null, config);
     } else if (answer === "skip" || answer === "s") {
-      console.log("\n⏭️  Skipping tool execution...");
+      console.log("\n⏭️  跳过工具执行...");
       // Inject a message saying tools were skipped
       const lastMessage = result.messages[result.messages.length - 1] as AIMessage;
       const skipMessages: ToolMessage[] = (lastMessage.tool_calls || []).map(
         (call) =>
           new ToolMessage({
             tool_call_id: call.id!,
-            content: "SKIPPED: Human declined to execute this operation.",
+            content: "已跳过: 人工拒绝执行此操作。",
           })
       );
       // Update state with skip messages and resume
       await app.updateState(config, { messages: skipMessages });
       result = await app.invoke(null, config);
     } else {
-      console.log("\n❌ Rejected. Aborting execution.");
+      console.log("\n❌ 已拒绝。中止执行。");
       break;
     }
   }
@@ -296,7 +296,7 @@ async function runHumanInLoop(query: string) {
   // Final output
   const lastMessage = result.messages[result.messages.length - 1];
   console.log("\n" + "=".repeat(60));
-  console.log("📤 Final Response:");
+  console.log("📤 最终响应:");
   console.log(lastMessage.content);
   console.log("=".repeat(60));
 }
@@ -306,10 +306,10 @@ async function runHumanInLoop(query: string) {
  * ======================================================================== */
 
 async function main() {
-  console.log("🧑‍💼 Human-in-the-Loop Demo");
+  console.log("🧑‍💼 人机协作演示");
   console.log("=" + "=".repeat(59));
   console.log(
-    "This demo shows how to pause for human approval before sensitive operations.\n"
+    "此演示展示如何在敏感操作前暂停等待人工审批。\n"
   );
 
   // Test case: sensitive operation (send email)

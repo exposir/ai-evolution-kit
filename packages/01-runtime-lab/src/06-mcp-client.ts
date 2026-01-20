@@ -84,7 +84,7 @@ class MCPClient {
 
     const serverEntry = this.servers.get(serverName);
     if (!serverEntry) {
-      return JSON.stringify({ error: `Server not found: ${serverName}` });
+      return JSON.stringify({ error: `服务器未找到: ${serverName}` });
     }
 
     console.log(`  [MCP] 路由到 ${serverName}.${methodName}`);
@@ -179,8 +179,8 @@ function prompt(question: string): Promise<string> {
 
 async function main() {
   console.log('='.repeat(50));
-  console.log('  Chapter 6: MCP Client');
-  console.log('  演示 Client 如何动态发现和调用 Server 能力');
+  console.log('  第六章: MCP 客户端');
+  console.log('  演示客户端如何动态发现和调用服务端能力');
   console.log('='.repeat(50));
   console.log();
 
@@ -206,7 +206,7 @@ async function main() {
       const reply = await chat(userInput);
       console.log(`\nAI: ${reply}\n`);
     } catch (error) {
-      console.error('Error:', error);
+      console.error('错误:', error);
     }
   }
 }
