@@ -15,12 +15,12 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
-import { default as nodePath } from 'node:path';
-import dotenv from 'dotenv';
-dotenv.config({ path: nodePath.resolve(process.cwd(), '../../.env') });
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-import OpenAI from 'openai';
+import { default as nodePath } from "node:path";
+import dotenv from "dotenv";
+dotenv.config({ path: nodePath.resolve(process.cwd(), "../../.env") });
+import * as fs from "node:fs";
+import * as path from "node:path";
+import OpenAI from "openai";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -101,8 +101,9 @@ function splitText(text: string, chunkSize = 200, overlap = 50): string[] {
  */
 async function getEmbedding(text: string): Promise<number[]> {
   const response = await openai.embeddings.create({
-    model: process.env.EMBEDDING_MODEL || 'text-embedding-3-small',
+    model: process.env.EMBEDDING_MODEL || "text-embedding-3-small",
     input: text,
+    encoding_format: "float",
   });
 
   return response.data[0].embedding;
@@ -113,21 +114,21 @@ async function getEmbedding(text: string): Promise<number[]> {
 // ============================================
 
 async function buildKnowledgeBase() {
-  console.log('='.repeat(50));
-  console.log('  Chapter 7: RAG - Embedding');
-  console.log('  构建向量知识库');
-  console.log('='.repeat(50));
+  console.log("=".repeat(50));
+  console.log("  Chapter 7: RAG - Embedding");
+  console.log("  构建向量知识库");
+  console.log("=".repeat(50));
   console.log();
 
   // 读取知识文件
-  const knowledgePath = path.join(import.meta.dirname, '..', 'knowledge.txt');
+  const knowledgePath = path.join(import.meta.dirname, "..", "knowledge.txt");
   console.log(`[1] 读取知识文件: ${knowledgePath}`);
 
-  const text = fs.readFileSync(knowledgePath, 'utf-8');
+  const text = fs.readFileSync(knowledgePath, "utf-8");
   console.log(`    文件大小: ${text.length} 字符\n`);
 
   // 切分文本
-  console.log('[2] 切分文本为 chunks...');
+  console.log("[2] 切分文本为 chunks...");
   const chunks = splitText(text);
   console.log(`    生成 ${chunks.length} 个 chunks:\n`);
 
@@ -137,9 +138,11 @@ async function buildKnowledgeBase() {
   console.log();
 
   // 生成向量
-  console.log('[3] 生成向量嵌入...');
-  console.log(`    使用模型: ${process.env.EMBEDDING_MODEL || 'text-embedding-3-small'}`);
-  console.log('    向量维度: 1536\n');
+  console.log("[3] 生成向量嵌入...");
+  console.log(
+    `    使用模型: ${process.env.EMBEDDING_MODEL || "text-embedding-3-small"}`,
+  );
+  console.log("    向量维度: 1536\n");
 
   for (let i = 0; i < chunks.length; i++) {
     const chunk = chunks[i];
@@ -162,10 +165,15 @@ async function buildKnowledgeBase() {
   const sample = db.getAll()[0];
   if (sample) {
     console.log(`\n[示例] 第一个文档的向量前 5 维:`);
-    console.log(`    [${sample.embedding.slice(0, 5).map((v) => v.toFixed(4)).join(', ')}, ...]`);
+    console.log(
+      `    [${sample.embedding
+        .slice(0, 5)
+        .map((v) => v.toFixed(4))
+        .join(", ")}, ...]`,
+    );
   }
 
-  console.log('\n[提示] 运行 Chapter 8 (08-search.ts) 来测试向量检索');
+  console.log("\n[提示] 运行 Chapter 8 (08-search.ts) 来测试向量检索");
 }
 
 // 导出供 Chapter 8 使用
