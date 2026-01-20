@@ -4,6 +4,7 @@ VitePress + Markdown + Node.js + Prettier
 
 <directory>
 ai-agent-fullstack-course/ - 前端转 AI Agent 全栈通关秘籍 (1 子目录: [TODO] projects)
+doc/ - 项目级文档与评估报告 (0 子目录)
 docs/ - VitePress 站点与主题配置 (1 子目录: .vitepress)
 library/ - 外部资源库 (3 子目录: papers, references, tutorials)
 notes/ - 核心笔记内容 (14 子目录: ai-fundamentals, claude-code, ...)

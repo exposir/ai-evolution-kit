@@ -6,6 +6,8 @@ AI UX 工程模块 - 用 Vercel AI SDK 构建丝滑的 AI 交互体验
 
 ## 成员清单
 
+`README.md`: 前端应用指南
+
 ```
 src/
 ├── app/

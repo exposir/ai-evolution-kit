@@ -6,6 +6,8 @@
 
 ## 成员清单
 
+`README.md`: 数据管道构建指南
+
 ```
 src/
 ├── 09-doc-cleaner.ts   : 文档清洗，Extract → Clean → Split 三阶段管道
@@ -40,11 +42,11 @@ pnpm ch11  # 混合检索
 
 ## 核心概念
 
-| 章节 | 核心概念 | 关键代码 |
-|------|----------|----------|
-| Ch9 | 递归切分 | `RecursiveSplitter` + chunkOverlap |
-| Ch10 | 批量 Embedding | Rate Limit 控制 + 批量入库 |
-| Ch11 | 混合检索 | `match_documents` RPC + ilike |
+| 章节 | 核心概念       | 关键代码                           |
+| ---- | -------------- | ---------------------------------- |
+| Ch9  | 递归切分       | `RecursiveSplitter` + chunkOverlap |
+| Ch10 | 批量 Embedding | Rate Limit 控制 + 批量入库         |
+| Ch11 | 混合检索       | `match_documents` RPC + ilike      |
 
 ## 数据流
 

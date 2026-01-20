@@ -6,6 +6,8 @@ AI 运行时基础实验室 - 从裸金属 Chat 到 RAG 检索的 8 章渐进式
 
 ## 成员清单
 
+`README.md`: 实验说明与运行指南
+
 ```
 src/
 ├── 01-chat.ts        : 裸金属对话，OpenAI API + readline + 上下文记忆

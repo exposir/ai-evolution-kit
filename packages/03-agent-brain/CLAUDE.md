@@ -6,6 +6,8 @@ AI Agent 编排引擎 - 用 LangGraph 构建状态机驱动的复杂 Agent
 
 ## 成员清单
 
+`README.md`: Agent 构建指南
+
 ```
 src/
 ├── 12-state-graph.ts     : StateGraph 入门，Node/Edge/State 基础，ReAct 循环
@@ -34,12 +36,12 @@ pnpm ch15  # 多 Agent 团队
 
 ## 核心概念
 
-| 章节 | 核心概念                 | 关键代码                                         |
-| ---- | ------------------------ | ------------------------------------------------ |
-| Ch12 | StateGraph 结构          | `new StateGraph().addNode().addEdge().compile()` |
-| Ch13 | Conditional Edge + Retry | `addConditionalEdges()` + `retryCount` 状态      |
-| Ch14 | Interrupt/Resume         | `MemorySaver` + `interruptBefore` + `updateState`|
-| Ch15 | Supervisor 模式          | 主管路由 + Worker 节点 + 共享 workLog            |
+| 章节 | 核心概念                 | 关键代码                                          |
+| ---- | ------------------------ | ------------------------------------------------- |
+| Ch12 | StateGraph 结构          | `new StateGraph().addNode().addEdge().compile()`  |
+| Ch13 | Conditional Edge + Retry | `addConditionalEdges()` + `retryCount` 状态       |
+| Ch14 | Interrupt/Resume         | `MemorySaver` + `interruptBefore` + `updateState` |
+| Ch15 | Supervisor 模式          | 主管路由 + Worker 节点 + 共享 workLog             |
 
 ## 架构演进
 
@@ -55,12 +57,12 @@ M1 (Runtime Lab)          M3 (Agent Brain)
 
 ## 从 M1 到 M3 的跃迁
 
-| 维度     | M1 (03-loop.ts)      | M3 (StateGraph)            |
-| -------- | -------------------- | -------------------------- |
-| 流程控制 | while + if/else      | 声明式图结构               |
-| 状态管理 | 手工维护 messages    | Annotation + Reducer       |
-| 重试逻辑 | 无                   | Conditional Edge + Counter |
-| 人工介入 | 无                   | Interrupt/Resume           |
-| 多 Agent | 无                   | Supervisor + Workers       |
+| 维度     | M1 (03-loop.ts)   | M3 (StateGraph)            |
+| -------- | ----------------- | -------------------------- |
+| 流程控制 | while + if/else   | 声明式图结构               |
+| 状态管理 | 手工维护 messages | Annotation + Reducer       |
+| 重试逻辑 | 无                | Conditional Edge + Counter |
+| 人工介入 | 无                | Interrupt/Resume           |
+| 多 Agent | 无                | Supervisor + Workers       |
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

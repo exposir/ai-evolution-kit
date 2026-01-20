@@ -1,5 +1,6 @@
 {
   "name": "ai-evolution-kit",
+  "packageManager": "pnpm@9.15.4",
   "version": "1.0.0",
   "description": "2025 AI 前端工程师进阶全景学习项目",
   "private": true,
