@@ -4,9 +4,20 @@
  *
  * 核心要点：
  * 1. 向量检索: 调用 match_documents RPC 函数
+ *    - 底层: PostgreSQL + pgvector 扩展 (Supabase 提供)
+ *    - 原理: 数据库内计算余弦距离 (1 - embedding <=> query_embedding)
  * 2. 关键词检索: 使用 PostgreSQL ilike 模糊匹配
+ *    - 底层: 标准 SQL LIKE 语法 (任何 PostgreSQL 都支持)
+ *    - 原理: 字符串模式匹配，无语义理解
  * 3. Hybrid Search: 结合两种策略
+ *    - 策略: 向量优先、关键词兜底、去重合并
  * 4. Rerank: 简易版分数阈值过滤
+ *    - 生产环境建议使用专业 Reranker 模型 (Cohere/BGE)
+ *
+ * 💡 技术栈分工：
+ * - Supabase (PostgreSQL + pgvector): 负责存储和检索计算
+ * - OpenAI/智谱 API: 负责生成查询文本的 Embedding 向量
+ * - 本模块: 负责编排流程、混合策略、结果聚合
  *
  * @module 02-data-forge/11-smart-search
  * [INPUT]: @supabase/supabase-js (RPC 调用), openai (查询向量化)
@@ -15,23 +26,24 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
-import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
 // 从项目根目录加载 .env
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
-import * as readline from 'node:readline';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import OpenAI from 'openai';
+dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
+import * as readline from "node:readline";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import OpenAI from "openai";
 
 // ============================================
 // 环境变量
 // ============================================
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY;
+const SUPABASE_KEY =
+  process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const OPENAI_BASE_URL = process.env.OPENAI_BASE_URL;
 
@@ -44,13 +56,13 @@ export interface SearchResult {
   content: string;
   metadata: Record<string, unknown>;
   similarity: number;
-  source: 'vector' | 'keyword' | 'hybrid';
+  source: "vector" | "keyword" | "hybrid";
 }
 
 export interface SearchOptions {
-  threshold: number;      // 相似度阈值 (0-1)
-  limit: number;          // 返回数量
-  useHybrid: boolean;     // 是否启用混合检索
+  threshold: number; // 相似度阈值 (0-1)
+  limit: number; // 返回数量
+  useHybrid: boolean; // 是否启用混合检索
 }
 
 // ============================================
@@ -64,17 +76,18 @@ export class SmartSearch {
 
   constructor() {
     if (!SUPABASE_URL || !SUPABASE_KEY) {
-      throw new Error('缺少 SUPABASE_URL 或 SUPABASE_KEY');
+      throw new Error("缺少 SUPABASE_URL 或 SUPABASE_KEY");
     }
     if (!OPENAI_API_KEY) {
-      throw new Error('缺少 OPENAI_API_KEY');
+      throw new Error("缺少 OPENAI_API_KEY");
     }
 
     this.supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-    this.embeddingUrl = `${OPENAI_BASE_URL || 'https://api.openai.com/v1'}/embeddings`;
-    this.embeddingModel = process.env.EMBEDDING_MODEL || 'text-embedding-3-small';
+    this.embeddingUrl = `${OPENAI_BASE_URL || "https://api.openai.com/v1"}/embeddings`;
+    this.embeddingModel =
+      process.env.EMBEDDING_MODEL || "text-embedding-3-small";
 
-    console.log('[SmartSearch] 初始化完成');
+    console.log("[SmartSearch] 初始化完成");
   }
 
   /**
@@ -82,9 +95,9 @@ export class SmartSearch {
    */
   private async getQueryEmbedding(query: string): Promise<number[]> {
     const response = await fetch(this.embeddingUrl, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         Authorization: `Bearer ${OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
@@ -108,7 +121,7 @@ export class SmartSearch {
    */
   async vectorSearch(
     query: string,
-    options: Partial<SearchOptions> = {}
+    options: Partial<SearchOptions> = {},
   ): Promise<SearchResult[]> {
     const { threshold = 0.7, limit = 5 } = options;
 
@@ -118,14 +131,14 @@ export class SmartSearch {
     const queryEmbedding = await this.getQueryEmbedding(query);
 
     // 2. 调用 RPC 函数
-    const { data, error } = await this.supabase.rpc('match_documents', {
+    const { data, error } = await this.supabase.rpc("match_documents", {
       query_embedding: queryEmbedding,
       match_threshold: threshold,
       match_count: limit,
     });
 
     if (error) {
-      console.error('[向量检索] 错误:', error.message);
+      console.error("[向量检索] 错误:", error.message);
       throw error;
     }
 
@@ -134,7 +147,7 @@ export class SmartSearch {
       content: row.content,
       metadata: row.metadata,
       similarity: row.similarity,
-      source: 'vector' as const,
+      source: "vector" as const,
     }));
 
     console.log(`[向量检索] 找到 ${results.length} 条结果`);
@@ -145,10 +158,7 @@ export class SmartSearch {
    * 关键词检索 (模糊匹配)
    * 当向量检索结果不足时的备选方案
    */
-  async keywordSearch(
-    query: string,
-    limit = 5
-  ): Promise<SearchResult[]> {
+  async keywordSearch(query: string, limit = 5): Promise<SearchResult[]> {
     console.log(`\n[关键词检索] Query: "${query}"`);
 
     // 分词 (简单按空格切分)
@@ -160,17 +170,17 @@ export class SmartSearch {
 
     // 构建 ilike 查询
     let queryBuilder = this.supabase
-      .from('documents')
-      .select('id, content, metadata');
+      .from("documents")
+      .select("id, content, metadata");
 
     // OR 条件: 任意关键词匹配
-    const orConditions = keywords.map((k) => `content.ilike.%${k}%`).join(',');
+    const orConditions = keywords.map((k) => `content.ilike.%${k}%`).join(",");
     queryBuilder = queryBuilder.or(orConditions);
 
     const { data, error } = await queryBuilder.limit(limit);
 
     if (error) {
-      console.error('[关键词检索] 错误:', error.message);
+      console.error("[关键词检索] 错误:", error.message);
       throw error;
     }
 
@@ -179,7 +189,7 @@ export class SmartSearch {
       content: row.content,
       metadata: row.metadata,
       similarity: 0.5, // 关键词匹配给一个固定分数
-      source: 'keyword' as const,
+      source: "keyword" as const,
     }));
 
     console.log(`[关键词检索] 找到 ${results.length} 条结果`);
@@ -192,20 +202,20 @@ export class SmartSearch {
    */
   async hybridSearch(
     query: string,
-    options: Partial<SearchOptions> = {}
+    options: Partial<SearchOptions> = {},
   ): Promise<SearchResult[]> {
     const { threshold = 0.7, limit = 5 } = options;
 
-    console.log('\n' + '='.repeat(40));
-    console.log('[混合检索] 开始');
-    console.log('='.repeat(40));
+    console.log("\n" + "=".repeat(40));
+    console.log("[混合检索] 开始");
+    console.log("=".repeat(40));
 
     // 1. 向量检索
     const vectorResults = await this.vectorSearch(query, { threshold, limit });
 
     // 2. 如果向量结果充足，直接返回
     if (vectorResults.length >= limit) {
-      console.log('[混合检索] 向量结果充足，跳过关键词检索');
+      console.log("[混合检索] 向量结果充足，跳过关键词检索");
       return vectorResults;
     }
 
@@ -215,14 +225,16 @@ export class SmartSearch {
 
     // 4. 去重合并
     const seenIds = new Set(vectorResults.map((r) => r.id));
-    const uniqueKeywordResults = keywordResults.filter((r) => !seenIds.has(r.id));
+    const uniqueKeywordResults = keywordResults.filter(
+      (r) => !seenIds.has(r.id),
+    );
 
     const combined = [...vectorResults, ...uniqueKeywordResults];
 
     // 5. 标记混合来源
     combined.forEach((r) => {
-      if (r.source === 'vector' && vectorResults.length < limit) {
-        r.source = 'hybrid';
+      if (r.source === "vector" && vectorResults.length < limit) {
+        r.source = "hybrid";
       }
     });
 
@@ -246,18 +258,18 @@ export class SmartSearch {
 // ============================================
 
 async function main() {
-  console.log('='.repeat(50));
-  console.log('  第十一章: 智能搜索');
-  console.log('='.repeat(50));
+  console.log("=".repeat(50));
+  console.log("  第十一章: 智能搜索");
+  console.log("=".repeat(50));
   console.log();
 
   // 检查环境变量
   if (!SUPABASE_URL || !SUPABASE_KEY || !OPENAI_API_KEY) {
-    console.log('[错误] 请在 .env 中配置:');
-    console.log('  SUPABASE_URL');
-    console.log('  SUPABASE_SERVICE_KEY');
-    console.log('  OPENAI_API_KEY');
-    console.log('\n[提示] 请先运行第十章插入数据');
+    console.log("[错误] 请在 .env 中配置:");
+    console.log("  SUPABASE_URL");
+    console.log("  SUPABASE_SERVICE_KEY");
+    console.log("  OPENAI_API_KEY");
+    console.log("\n[提示] 请先运行第十章插入数据");
     return;
   }
 
@@ -272,14 +284,14 @@ async function main() {
   const prompt = (question: string): Promise<string> =>
     new Promise((resolve) => rl.question(question, resolve));
 
-  console.log('输入搜索词进行混合检索');
+  console.log("输入搜索词进行混合检索");
   console.log('输入 "exit" 退出\n');
 
   while (true) {
-    const query = await prompt('Search: ');
+    const query = await prompt("Search: ");
 
-    if (query.toLowerCase() === 'exit') {
-      console.log('再见！');
+    if (query.toLowerCase() === "exit") {
+      console.log("再见！");
       rl.close();
       break;
     }
@@ -289,26 +301,28 @@ async function main() {
     try {
       // 执行混合检索
       const results = await search.hybridSearch(query, {
-        threshold: 0.3,  // 降低阈值适配智谱 embedding
+        threshold: 0.3, // 降低阈值适配智谱 embedding
         limit: 3,
       });
 
       // Rerank
-      const reranked = search.rerank(results, 0.2);  // 降低阈值
+      const reranked = search.rerank(results, 0.2); // 降低阈值
 
       // 输出结果
-      console.log('\n[检索结果]');
+      console.log("\n[检索结果]");
       if (reranked.length === 0) {
-        console.log('  未找到相关内容');
+        console.log("  未找到相关内容");
       } else {
         reranked.forEach((r, i) => {
-          console.log(`\n  [${i + 1}] 相似度: ${(r.similarity * 100).toFixed(1)}% (${r.source})`);
+          console.log(
+            `\n  [${i + 1}] 相似度: ${(r.similarity * 100).toFixed(1)}% (${r.source})`,
+          );
           console.log(`      ${r.content.slice(0, 100)}...`);
         });
       }
       console.log();
     } catch (error) {
-      console.error('[错误]', error);
+      console.error("[错误]", error);
     }
   }
 }
