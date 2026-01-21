@@ -17,7 +17,11 @@
 
 import { default as nodePath } from "node:path";
 import dotenv from "dotenv";
-dotenv.config({ path: nodePath.resolve(process.cwd(), "../../.env") });
+import { fileURLToPath } from "node:url";
+
+// 从项目根目录加载 .env
+const __dirname = nodePath.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: nodePath.resolve(__dirname, "../../../.env") });
 import * as readline from "node:readline";
 import * as fs from "node:fs";
 import * as path from "node:path";

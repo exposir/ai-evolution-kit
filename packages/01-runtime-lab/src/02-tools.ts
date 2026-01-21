@@ -16,7 +16,11 @@
 
 import path from "node:path";
 import dotenv from "dotenv";
-dotenv.config({ path: path.resolve(process.cwd(), "../../.env") });
+import { fileURLToPath } from "node:url";
+
+// 从项目根目录加载 .env
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import * as readline from "node:readline";
 import OpenAI from "openai";
 import { z } from "zod";

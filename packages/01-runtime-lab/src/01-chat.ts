@@ -16,10 +16,11 @@
 
 import path from 'node:path';
 import dotenv from 'dotenv';
+import { fileURLToPath } from 'node:url';
 
-// 尝试加载根目录的 .env 文件
-// 假设当前运行目录 (CWD) 是 packages/01-runtime-lab
-dotenv.config({ path: path.resolve(process.cwd(), '../../.env') });
+// 从项目根目录加载 .env
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 import * as readline from 'node:readline';
 import OpenAI from 'openai';
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';

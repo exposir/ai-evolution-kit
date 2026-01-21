@@ -3,8 +3,11 @@
  */
 import dotenv from "dotenv";
 import nodePath from "path";
+import { fileURLToPath } from "url";
 
-dotenv.config({ path: nodePath.resolve(process.cwd(), "../../.env") });
+// 从项目根目录加载 .env
+const __dirname = nodePath.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: nodePath.resolve(__dirname, "../../../.env") });
 
 import OpenAI from "openai";
 
