@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 @nestjs/config, ai, @ai-sdk/openai
+ * [INPUT]: 依赖 @nestjs/config, ai, @ai-sdk/openai, memory.service
  * [OUTPUT]: ChatService 类 (chat, streamChat 方法)
- * [POS]: chat 模块的业务逻辑层, 封装 AI 调用
+ * [POS]: chat 模块的业务逻辑层, 封装 AI 调用 + 会话持久化
  * [PROTOCOL]: 变更时更新此头部, 然后检查 CLAUDE.md
  */
 
@@ -10,6 +10,7 @@ import { ConfigService } from '@nestjs/config';
 import { createOpenAI } from '@ai-sdk/openai';
 import { generateText, streamText } from 'ai';
 import { ChatRequestDto, ChatResponseDto } from './dto/chat.dto';
+import { MemoryService } from '../memory/memory.service';
 import { randomUUID } from 'crypto';
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -27,8 +28,12 @@ export class ChatService {
   /* ─────────────────────────────────────────────────────────────────────────
    * Constructor - 依赖注入的入口
    * - ConfigService 由 NestJS DI 容器自动注入
+   * - MemoryService 提供会话持久化能力 (Ch21)
    * ───────────────────────────────────────────────────────────────────────── */
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly memoryService: MemoryService,
+  ) {
     const apiKey = this.configService.get<string>('OPENAI_API_KEY')!;
     const baseURL = this.configService.get<string>('OPENAI_BASE_URL') || 'https://api.openai.com/v1';
 
@@ -44,6 +49,7 @@ export class ChatService {
 
   /* ─────────────────────────────────────────────────────────────────────────
    * chat - 同步对话 (一次性返回完整响应)
+   * - 支持会话持久化: 加载历史 → 追加新消息 → 保存状态
    * ───────────────────────────────────────────────────────────────────────── */
   async chat(dto: ChatRequestDto): Promise<ChatResponseDto> {
     const sessionId = dto.sessionId || randomUUID();
@@ -51,14 +57,35 @@ export class ChatService {
 
     this.logger.debug(`处理会话请求: ${sessionId}`);
 
-    const messages = dto.messages.map((m) => ({
+    // 加载历史消息 (Ch21: Redis 持久化)
+    const history = await this.memoryService.getConversation(sessionId);
+    const historyMessages = history?.messages.map((m) => ({
+      role: m.role,
+      content: m.content,
+    })) || [];
+
+    // 合并历史 + 新消息
+    const newMessages = dto.messages.map((m) => ({
       role: m.role,
       content: m.content,
     }));
+    const allMessages = [...historyMessages, ...newMessages];
 
     const result = await generateText({
       model: this.openai(model),
-      messages,
+      messages: allMessages,
+    });
+
+    // 保存用户消息和助手回复到 Redis
+    for (const msg of dto.messages) {
+      await this.memoryService.appendMessage(sessionId, {
+        role: msg.role,
+        content: msg.content,
+      });
+    }
+    await this.memoryService.appendMessage(sessionId, {
+      role: 'assistant',
+      content: result.text,
     });
 
     return {

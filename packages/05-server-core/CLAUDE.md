@@ -9,7 +9,7 @@ Milestone 5: Server Core - NestJS 后端堡垒
 | 章节 | 功能                                    | 状态 |
 | ---- | --------------------------------------- | ---- |
 | Ch20 | NestJS 架构 (Controller/Service/Module) | ✅   |
-| Ch21 | Redis Memory (需配置 REDIS_URL)         | ⏳   |
+| Ch21 | Redis Memory (会话持久化 + 缓存)        | ✅   |
 | Ch22 | Guardrails (限流/认证)                  | ✅   |
 
 ## 架构概览
