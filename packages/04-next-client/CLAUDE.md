@@ -23,7 +23,7 @@ src/
 │       ├── gen-ui/route.ts : 工具调用 API (Ch18)
 │       └── structured/route.ts : 结构化输出 API (Ch19)
 ├── lib/
-│   ├── ai.ts               : AI 配置，智谱 AI 兼容层
+│   ├── ai.ts               : AI 配置，OpenAI 兼容层
 │   └── schemas.ts          : Zod Schema 定义
 └── components/             : [空] 可扩展组件库
 ```
@@ -32,7 +32,7 @@ src/
 
 - `next`: Next.js 15 App Router
 - `ai`: Vercel AI SDK 核心
-- `@ai-sdk/openai-compatible`: OpenAI 兼容层（支持智谱等）
+- `@ai-sdk/openai-compatible`: OpenAI 兼容层
 - `zod`: Schema 定义
 - `tailwindcss`: 样式
 
@@ -72,7 +72,7 @@ pnpm start    # 生产运行
           │                │                │
           ▼                ▼                ▼
        ┌─────────────────────────────────────┐
-       │          智谱 AI (glm-4-flash)       │
+       │              LLM Provider              │
        └─────────────────────────────────────┘
 ```
 

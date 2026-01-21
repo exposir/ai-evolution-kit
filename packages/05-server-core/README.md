@@ -55,8 +55,8 @@ pnpm dev    # http://localhost:3001
 ```bash
 # AI (必需)
 OPENAI_API_KEY=sk-xxx
-OPENAI_BASE_URL=https://open.bigmodel.cn/api/paas/v4
-CHAT_MODEL=glm-4-airx
+OPENAI_BASE_URL=https://api.example.com/v1
+CHAT_MODEL=your-model-name
 
 # Redis (可选)
 REDIS_URL=redis://localhost:6379
@@ -160,7 +160,7 @@ flowchart TB
     AUTH --> CACHE[CacheInterceptor]
     CACHE --> CTRL[ChatController]
     CTRL --> SVC[ChatService]
-    SVC --> AI[智谱 AI]
+    SVC --> AI[LLM]
     SVC --> REDIS[(Redis)]
 
     style THR fill:#ffecb3

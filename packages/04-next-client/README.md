@@ -64,8 +64,8 @@ pnpm dev    # http://localhost:3000
 
 ```bash
 OPENAI_API_KEY=sk-xxx
-OPENAI_BASE_URL=https://open.bigmodel.cn/api/paas/v4
-CHAT_MODEL=glm-4-flash
+OPENAI_BASE_URL=https://api.example.com/v1
+CHAT_MODEL=your-model-name
 ```
 
 ## 章节导航
@@ -150,7 +150,7 @@ flowchart TB
     end
 
     subgraph "AI Provider"
-        LLM[智谱 glm-4-flash]
+        LLM[LLM]
     end
 
     UC <-->|SSE| ST

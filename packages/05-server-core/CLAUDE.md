@@ -93,7 +93,7 @@ src/
 使用 AI SDK 4 (`ai@^4.0.0`) 而非 AI SDK 5/6，因为：
 
 - AI SDK 5/6 使用新的 `/responses` API 端点
-- 智谱 AI 等 OpenAI 兼容服务只支持 `/chat/completions`
+- 使用 OpenAI 兼容 API
 - `@ai-sdk/openai` 的 `compatibility: 'compatible'` 选项在 v4 中有效
 
 ## 运行
@@ -124,9 +124,9 @@ curl -N -X POST http://localhost:3001/chat/stream \
 
 | 变量            | 必需 | 说明                                                           |
 | --------------- | ---- | -------------------------------------------------------------- |
-| OPENAI_API_KEY  | ✅   | OpenAI/智谱 API Key                                            |
-| OPENAI_BASE_URL | ❌   | 自定义 API 端点 (智谱: `https://open.bigmodel.cn/api/paas/v4`) |
-| CHAT_MODEL      | ❌   | 模型名 (智谱: `glm-4-airx`, OpenAI: `gpt-4o-mini`)             |
+| OPENAI_API_KEY  | ✅   | LLM API Key                                                    |
+| OPENAI_BASE_URL | ❌   | 自定义 API 端点                                                |
+| CHAT_MODEL      | ❌   | 模型名称                                                       |
 | REDIS_URL       | ❌   | Redis 连接 (默认 `redis://localhost:6379`)                     |
 | API_KEY         | ❌   | 接口认证密钥 (启用 ApiKeyGuard)                                |
 

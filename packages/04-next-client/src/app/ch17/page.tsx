@@ -7,6 +7,23 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
+// ┌─────────────────────────────────────────────────────────────┐
+// │  前端 (page.tsx)                                             │
+// │  useChat({ api: "/api/chat" })                              │
+// │  ↓ 自动处理 SSE 数据流                                        │
+// └─────────────────────────────────────────────────────────────┘
+//                               ↕ HTTP POST + SSE
+// ┌─────────────────────────────────────────────────────────────┐
+// │  后端 (route.ts) - 流式关键代码                               │
+// │                                                              │
+// │  const result = streamText({   // ← 使用 streamText 而非 generateText  │
+// │    model,                                                    │
+// │    messages,                                                 │
+// │  });                                                         │
+// │                                                              │
+// │  return result.toDataStreamResponse();  // ← 返回 SSE 流式响应  │
+// └─────────────────────────────────────────────────────────────┘
+
 import { useChat } from "ai/react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -132,14 +149,14 @@ export default function Ch17Page() {
       <div className="mt-8 p-4 bg-gray-900 rounded-lg text-sm">
         <p className="text-gray-400 mb-2">// 后端核心代码</p>
         <pre className="text-green-400 overflow-x-auto">
-{`import { streamText } from "ai";
+          {`import { streamText } from "ai";
 
 const result = streamText({ model, messages });
 return result.toDataStreamResponse(); // SSE 流式响应`}
         </pre>
         <p className="text-gray-400 mt-4 mb-2">// 原理</p>
         <pre className="text-blue-400 overflow-x-auto">
-{`Server-Sent Events (SSE)
+          {`Server-Sent Events (SSE)
 ├── Token 1 → 渲染
 ├── Token 2 → 渲染
 ├── Token 3 → 渲染

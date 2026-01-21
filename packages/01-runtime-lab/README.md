@@ -55,9 +55,9 @@ pnpm ch8   # 向量搜索
 
 ```bash
 OPENAI_API_KEY=sk-xxx
-OPENAI_BASE_URL=https://open.bigmodel.cn/api/paas/v4
-CHAT_MODEL=glm-4-airx
-EMBEDDING_MODEL=embedding-3
+OPENAI_BASE_URL=https://api.example.com/v1
+CHAT_MODEL=your-model-name
+EMBEDDING_MODEL=your-embedding-model
 ```
 
 ## 章节导航

@@ -52,10 +52,10 @@ pnpm ch11  # 混合检索
 ### 环境变量
 
 ```bash
-# Embedding API (智谱 / OpenAI)
+# Embedding API
 OPENAI_API_KEY=sk-xxx
-OPENAI_BASE_URL=https://open.bigmodel.cn/api/paas/v4
-EMBEDDING_MODEL=embedding-3
+OPENAI_BASE_URL=https://api.example.com/v1
+EMBEDDING_MODEL=your-embedding-model
 
 # Supabase (Ch10-11)
 SUPABASE_URL=https://xxx.supabase.co
@@ -137,7 +137,7 @@ flowchart TB
     end
 
     subgraph "能力层"
-        EA[OpenAI/智谱 Embedding API]
+        EA[Embedding API]
         SR[Supabase RPC]
         SL[Supabase ilike]
     end
@@ -156,7 +156,7 @@ flowchart TB
 
 ## Supabase 配置
 
-在 SQL Editor 执行（**2048 维适配智谱 embedding-3**）：
+在 SQL Editor 执行：
 
 ```sql
 -- 启用 pgvector
@@ -191,7 +191,7 @@ END;
 $$;
 ```
 
-> **⚠️ 注意**：智谱 embedding-3 = 2048 维，超过 pgvector 索引限制 (2000)，需无索引运行。大数据量建议换 ≤2000 维模型。
+> **⚠️ 注意**：向量维度需根据使用的 Embedding 模型调整。pgvector 索引限制 2000 维，超过需无索引运行。
 
 ## 文件结构
 

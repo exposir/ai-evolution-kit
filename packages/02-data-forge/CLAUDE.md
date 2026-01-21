@@ -31,10 +31,10 @@ src/
 从项目根目录 `/.env` 加载，无需在子目录配置：
 
 ```bash
-# Embedding 配置（当前使用智谱）
+# Embedding 配置
 OPENAI_API_KEY=xxx
-OPENAI_BASE_URL=https://open.bigmodel.cn/api/paas/v4
-EMBEDDING_MODEL=embedding-3  # 512 维
+OPENAI_BASE_URL=https://api.example.com/v1
+EMBEDDING_MODEL=your-embedding-model
 
 # Supabase 配置
 SUPABASE_URL=https://xxx.supabase.co
@@ -68,7 +68,7 @@ Query → Embed → Vector Search ──┬── Hybrid → Rerank → Results
 
 ## Supabase 配置
 
-向量维度 **2048**（适配智谱 embedding-3），执行以下 SQL：
+向量维度需根据 Embedding 模型调整，执行以下 SQL：
 
 ```sql
 -- 启用 pgvector
@@ -111,12 +111,11 @@ $$;
 
 ## 向量维度参考
 
-| 模型                        | 维度 |
-| --------------------------- | ---- |
-| 智谱 embedding-3            | 2048 |
+| 模型                          | 维度 |
+| ----------------------------- | ---- |
 | OpenAI text-embedding-3-small | 1536 |
 | OpenAI text-embedding-ada-002 | 1536 |
 
-> **注意**：pgvector 索引限制 2000 维，2048 维需无索引运行。数据量大时需换用 ≤2000 维的模型。
+> **注意**：pgvector 索引限制 2000 维，超过需无索引运行。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

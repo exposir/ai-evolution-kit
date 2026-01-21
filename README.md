@@ -47,9 +47,9 @@ cp .env.example .env
 
 | 变量 | 必需 | 说明 |
 |------|------|------|
-| `OPENAI_API_KEY` | ✅ | OpenAI/智谱 API 密钥 |
-| `OPENAI_BASE_URL` | ❌ | 自定义 API 端点 (智谱: `https://open.bigmodel.cn/api/paas/v4`) |
-| `CHAT_MODEL` | ❌ | 模型名 (智谱: `glm-4-airx`, OpenAI: `gpt-4o-mini`) |
+| `OPENAI_API_KEY` | ✅ | LLM API 密钥 |
+| `OPENAI_BASE_URL` | ❌ | 自定义 API 端点 |
+| `CHAT_MODEL` | ❌ | 模型名称 |
 | `SUPABASE_URL` | ❌ | Supabase 项目 URL (M2 需要) |
 | `SUPABASE_SERVICE_KEY` | ❌ | Supabase Service Role Key (M2 需要) |
 | `REDIS_URL` | ❌ | Redis 连接 URL (M5 需要，默认 `redis://localhost:6379`) |
@@ -102,7 +102,7 @@ pnpm test
 | ---------- | ------------------------------------ |
 | 语言       | TypeScript                           |
 | 运行时     | Node.js                              |
-| AI         | OpenAI API, Vercel AI SDK, 智谱 AI   |
+| AI         | OpenAI API, Vercel AI SDK            |
 | 向量数据库 | Supabase (pgvector)                  |
 | 编排       | LangGraph                            |
 | 前端       | Next.js 15, React 19, Tailwind CSS 4 |
