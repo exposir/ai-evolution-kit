@@ -7,184 +7,162 @@
 
 # 02-data-forge
 
-> Milestone 2: Data Foundation - 记忆宫殿
+> **Milestone 2: Data Foundation — 记忆宫殿**
 
-解决"脏数据"与"失忆"问题的 3 章生产级数据处理教程，从 Demo 走向生产级数据管道。
+为 AI 构建**长期记忆层**的 3 章生产级教程。从文档清洗到向量检索，实现 RAG 系统的 Retrieval 核心。
 
-## 目录
+## 在 RAG 全景中的定位
 
-- [快速开始](#快速开始)
-- [章节概览](#章节概览)
-- [技术栈](#技术栈)
-- [核心概念](#核心概念)
-- [数据流](#数据流)
-- [Supabase 配置](#supabase-配置)
-- [文件结构](#文件结构)
-- [验收清单](#验收清单)
+```mermaid
+flowchart LR
+    subgraph "本模块实现 ✅"
+        A[用户查询] --> B[Query Embedding]
+        B --> C[Hybrid Search]
+        C --> D[Top-K 文档]
+    end
+
+    subgraph "下一模块实现 ❌"
+        D --> E[Context Augmentation]
+        E --> F[LLM Generation]
+        F --> G[自然语言回答]
+    end
+
+    style A fill:#e1f5fe
+    style G fill:#c8e6c9
+```
+
+| 步骤 | 名称                | 状态 | 实现位置         |
+| ---- | ------------------- | :--: | ---------------- |
+| R    | Retrieval (检索)    |  ✅  | `Ch9-11`         |
+| A    | Augmentation (增强) |  ❌  | `03-agent-brain` |
+| G    | Generation (生成)   |  ❌  | `03-agent-brain` |
 
 ## 快速开始
-
-### 环境要求
-
-- Node.js >= 18
-- pnpm >= 8
-- Supabase 账号（Ch10-11 需要）
-
-### 安装依赖
 
 ```bash
 cd packages/02-data-forge
 pnpm install
+
+# 配置 .env (见下方环境变量)
+pnpm ch9   # 文档清洗
+pnpm ch10  # 向量入库
+pnpm ch11  # 混合检索
 ```
 
-### 配置环境变量
-
-在项目根目录创建 `.env` 文件：
+### 环境变量
 
 ```bash
-# OpenAI / 智谱 AI
+# Embedding API (智谱 / OpenAI)
 OPENAI_API_KEY=sk-xxx
 OPENAI_BASE_URL=https://open.bigmodel.cn/api/paas/v4
 EMBEDDING_MODEL=embedding-3
 
-# Supabase (Ch10-11 需要)
+# Supabase (Ch10-11)
 SUPABASE_URL=https://xxx.supabase.co
 SUPABASE_SERVICE_KEY=eyJxxx
 ```
 
-### 运行章节
+## 章节导航
 
-```bash
-pnpm ch9   # Ch9: 文档清洗
-pnpm ch10  # Ch10: 向量入库
-pnpm ch11  # Ch11: 混合检索
+### Ch9: 文档清洗 — Extract → Clean → Split
+
+将脏数据转化为干净的文本块，为向量化做准备。
+
+```mermaid
+flowchart LR
+    A[PDF/MD] -->|pdf-parse| B[原始文本]
+    B -->|cleanText| C[干净文本]
+    C -->|RecursiveTextSplitter| D[Chunks]
+
+    style D fill:#fff3e0
 ```
 
-## 章节概览
+**核心能力**：
 
-| 章节 | 主题       | 学习目标                            |
-| ---- | ---------- | ----------------------------------- |
-| Ch9  | 文档清洗   | 掌握 Extract → Clean → Split 管道   |
-| Ch10 | 向量数据库 | 理解 Supabase + pgvector 持久化存储 |
-| Ch11 | 混合检索   | 实现 Vector + Keyword + Rerank 策略 |
+- 多格式支持 (PDF/Markdown/TXT)
+- 不可见字符清理、空白归一化
+- 递归切分策略：优先段落 → 句子 → 字符
 
-## 技术栈
+### Ch10: 向量数据库 — Supabase + pgvector
 
-| 依赖                    | 版本     | 用途            |
-| ----------------------- | -------- | --------------- |
-| `openai`                | ^4.77.0  | Embedding API   |
-| `@supabase/supabase-js` | ^2.47.12 | Supabase 客户端 |
-| `pdf-parse`             | ^1.1.1   | PDF 文本提取    |
-| `dotenv`                | ^16.4.7  | 环境变量加载    |
+将 Chunks 转为向量并持久化存储。
 
-## 核心概念
+```mermaid
+flowchart LR
+    A[Chunks] -->|Embedding API| B["Vectors [2048]"]
+    B -->|Batch Insert| C[(PostgreSQL + pgvector)]
 
-### Ch9: 递归文本切分
-
-```typescript
-class RecursiveTextSplitter {
-  constructor(
-    private chunkSize: number = 500,
-    private chunkOverlap: number = 50,
-  ) {}
-
-  split(text: string): string[] {
-    // 优先使用段落分隔
-    if (text.includes("\n\n")) {
-      return this.splitByDelimiter(text, "\n\n");
-    }
-    // 回退到句子分隔
-    if (text.includes("。")) {
-      return this.splitByDelimiter(text, "。");
-    }
-    // 最后按字符切分
-    return this.splitBySize(text);
-  }
-}
+    style C fill:#e8f5e9
 ```
 
-### Ch10: 批量向量化
+**核心能力**：
 
-```typescript
-async function batchGetEmbeddings(texts: string[]): Promise<number[][]> {
-  const BATCH_SIZE = 20;
-  const DELAY_MS = 1000;
-  const results: number[][] = [];
+- 批量向量化 (Rate Limit 控制)
+- Supabase RPC 函数封装
+- 余弦相似度检索
 
-  for (let i = 0; i < texts.length; i += BATCH_SIZE) {
-    const batch = texts.slice(i, i + BATCH_SIZE);
-    const response = await openai.embeddings.create({ input: batch });
-    results.push(...response.data.map((d) => d.embedding));
+### Ch11: 混合检索 — Vector + Keyword + Rerank
 
-    // Rate Limit 控制
-    if (i + BATCH_SIZE < texts.length) {
-      await sleep(DELAY_MS);
-    }
-  }
-  return results;
-}
+向量语义搜索 + 关键词精确匹配的混合策略。
+
+```mermaid
+flowchart TB
+    Q[用户查询] --> E[Embedding API]
+    Q --> K[分词]
+
+    E --> V[向量检索]
+    K --> KW[关键词检索]
+
+    V --> M[合并去重]
+    KW --> M
+    M --> R[Rerank]
+    R --> OUT[Top-K 结果]
+
+    style Q fill:#e3f2fd
+    style OUT fill:#fff3e0
 ```
 
-### Ch11: 混合检索
+**核心能力**：
 
-```typescript
-async function hybridSearch(query: string, limit: number = 5) {
-  // 1. 向量检索
-  const vectorResults = await vectorSearch(query, limit);
+- 语义理解 (向量) + 精确匹配 (ilike)
+- 向量优先、关键词兜底策略
+- 简易 Rerank (生产环境建议用专业模型)
 
-  // 2. 关键词检索 (补充)
-  const keywordResults = await keywordSearch(query, limit);
+## 技术架构
 
-  // 3. 合并去重
-  const merged = [...vectorResults];
-  for (const kr of keywordResults) {
-    if (!merged.find((vr) => vr.id === kr.id)) {
-      merged.push(kr);
-    }
-  }
+```mermaid
+flowchart TB
+    subgraph "应用层"
+        SM[SmartSearch 编排]
+    end
 
-  // 4. 重排序
-  return rerank(merged, query).slice(0, limit);
-}
-```
+    subgraph "能力层"
+        EA[OpenAI/智谱 Embedding API]
+        SR[Supabase RPC]
+        SL[Supabase ilike]
+    end
 
-## 数据流
+    subgraph "存储层"
+        PG[(PostgreSQL + pgvector)]
+    end
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        数据入库流程                          │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│   PDF/Markdown ──▶ Extract ──▶ Clean ──▶ Split ──▶ Chunks  │
-│                                                     │       │
-│                                                     ▼       │
-│                                              Embedding API  │
-│                                                     │       │
-│                                                     ▼       │
-│                                              Supabase DB    │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────┐
-│                        检索流程                              │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│   Query ──▶ Embed ──▶ Vector Search ──┬──▶ Merge ──▶ Rerank│
-│                                       │                     │
-│   Query ──────────▶ Keyword Search ───┘                     │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+    SM --> EA
+    SM --> SR
+    SM --> SL
+    EA -.->|向量作为参数| SR
+    SR --> PG
+    SL --> PG
 ```
 
 ## Supabase 配置
 
-在 Supabase SQL Editor 中执行以下脚本（**2048 维适配智谱 embedding-3**）：
+在 SQL Editor 执行（**2048 维适配智谱 embedding-3**）：
 
 ```sql
--- 1. 启用 pgvector 扩展
+-- 启用 pgvector
 CREATE EXTENSION IF NOT EXISTS vector;
 
--- 2. 创建文档表 (2048 维，无索引避免维度限制)
+-- 文档表
 CREATE TABLE documents (
   id BIGSERIAL PRIMARY KEY,
   content TEXT NOT NULL,
@@ -193,78 +171,62 @@ CREATE TABLE documents (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 3. 创建检索函数
+-- 检索函数
 CREATE OR REPLACE FUNCTION match_documents (
   query_embedding VECTOR(2048),
   match_threshold FLOAT DEFAULT 0.7,
   match_count INT DEFAULT 5
 ) RETURNS TABLE (
-  id BIGINT,
-  content TEXT,
-  metadata JSONB,
-  similarity FLOAT
+  id BIGINT, content TEXT, metadata JSONB, similarity FLOAT
 ) LANGUAGE plpgsql AS $$
 BEGIN
   RETURN QUERY
-  SELECT
-    documents.id,
-    documents.content,
-    documents.metadata,
-    1 - (documents.embedding <=> query_embedding) AS similarity
-  FROM documents
-  WHERE 1 - (documents.embedding <=> query_embedding) > match_threshold
+  SELECT d.id, d.content, d.metadata,
+         1 - (d.embedding <=> query_embedding) AS similarity
+  FROM documents d
+  WHERE 1 - (d.embedding <=> query_embedding) > match_threshold
   ORDER BY similarity DESC
   LIMIT match_count;
 END;
 $$;
 ```
 
-> **注意**：智谱 embedding-3 = 2048 维，超过 pgvector 索引限制（2000），需无索引运行。数据量大时建议换用 ≤2000 维的模型。
+> **⚠️ 注意**：智谱 embedding-3 = 2048 维，超过 pgvector 索引限制 (2000)，需无索引运行。大数据量建议换 ≤2000 维模型。
 
 ## 文件结构
 
 ```
 src/
-├── 09-doc-cleaner.ts   # 文档清洗，Extract → Clean → Split
-├── 10-vector-db.ts     # 向量数据库，Supabase + pgvector
-├── 11-smart-search.ts  # 混合检索，Vector + Keyword + Rerank
-└── __tests__/          # 单元测试 (待补充)
+├── 09-doc-cleaner.ts   # ETL 管道：Extract → Clean → Split
+├── 10-vector-db.ts     # 向量持久化：Supabase + pgvector
+├── 11-smart-search.ts  # 混合检索：Vector + Keyword + Rerank
+sample.md               # 测试用示例文档
 ```
 
 ## 验收清单
 
-| 章节 | 验收标准               | 验证方法                          |
-| ---- | ---------------------- | --------------------------------- |
-| Ch9  | PDF 文本正确提取并切分 | 运行脚本 → 检查 chunks 数量       |
-| Ch10 | 向量成功写入 Supabase  | 登录 Supabase → 查看 documents 表 |
-| Ch11 | 混合检索返回相关结果   | 搜索"AI" → 返回语义相关内容       |
+| 章节 | 验收标准                 | 验证方式                      |
+| ---- | ------------------------ | ----------------------------- |
+| Ch9  | PDF 正确提取并切分       | `pnpm ch9` → 检查 chunks 数量 |
+| Ch10 | 向量成功入库             | Supabase → documents 表有数据 |
+| Ch11 | 混合检索返回语义相关结果 | 搜索关键词 → 返回相关内容     |
 
-### 外部依赖检查
+### Supabase 依赖检查
 
-- [ ] Supabase 项目已创建
+- [ ] 项目已创建
 - [ ] `vector` 扩展已启用
-- [ ] `match_documents` RPC 函数已创建
-- [ ] `.env` 包含 `SUPABASE_URL` 和 `SUPABASE_SERVICE_KEY`
-
-## 单元测试
-
-```bash
-# 在项目根目录运行
-pnpm test
-```
-
-测试覆盖：
-
-- `cleanText`: 多余空白移除、不可见字符清理
-- `RecursiveTextSplitter`: 段落切分、重叠区保留
+- [ ] `match_documents` 函数已创建
+- [ ] `.env` 配置正确
 
 ## 学完之后
 
-掌握了 M2 的内容，你已经理解了：
+你已掌握：
 
-- 文档预处理的 ETL 管道
-- 向量数据库的存储与检索
-- 混合检索策略的实现
-- Rate Limit 的处理方式
+- **ETL 管道**：文档预处理的标准流程
+- **向量存储**：pgvector 的存取操作
+- **混合检索**：向量 + 关键词的互补策略
+- **Rate Limit**：批量 API 调用的节流控制
 
-下一步：进入 [03-agent-brain](../03-agent-brain) 学习 LangGraph 状态机编排。
+**当前进度**：RAG 的 **R (Retrieval)** 已完成，**AG (Augmented Generation)** 在下一模块实现。
+
+➡️ 下一步：[03-agent-brain](../03-agent-brain) — LangGraph 状态机编排 + LLM 生成
