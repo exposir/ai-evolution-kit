@@ -5,6 +5,28 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
+/* ========================================================================
+ * 📚 本文件核心学习要点
+ * ========================================================================
+ * 1. 双条件边设计：
+ *    - shouldContinue: agent → tools OR END (是否需要工具)
+ *    - shouldRetry:    tools → agent OR END (是否需要重试)
+ *
+ * 2. State 扩展：
+ *    - retryCount: 重试计数器，防止死循环
+ *    - lastError:  记录上次错误，供 Agent 分析修复
+ *
+ * 3. 自我修复循环：
+ *    START → agent → tools → [失败?] → agent (带错误上下文) → tools → ...
+ *                          ↘ [成功/超限] → END
+ *
+ * 4. 错误注入机制：
+ *    - 失败时将错误信息作为 SystemMessage 注入对话
+ *    - 让 LLM 理解错误并尝试修复
+ *
+ * 5. 最大重试限制：MAX_RETRIES = 3，避免无限循环
+ * ======================================================================== */
+
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -81,13 +103,16 @@ const runCodeTool = tool(
     schema: z.object({
       code: z.string().describe("The Python code to execute"),
     }),
-  }
+  },
 );
 
 const tools = [runCodeTool];
 
 // Type-safe tool executor
-async function executeTool(name: string, args: Record<string, unknown>): Promise<string> {
+async function executeTool(
+  name: string,
+  args: Record<string, unknown>,
+): Promise<string> {
   if (name === "run_code") {
     return await runCodeTool.invoke(args as { code: string });
   }
@@ -122,8 +147,8 @@ async function agentNode(state: AgentStateType) {
       new SystemMessage(
         `你的上次代码失败了: "${state.lastError}"。` +
           `请分析错误并使用修正后的代码重试。` +
-          `尝试 ${state.retryCount + 1}/${MAX_RETRIES}。`
-      )
+          `尝试 ${state.retryCount + 1}/${MAX_RETRIES}。`,
+      ),
     );
   }
 
@@ -131,7 +156,7 @@ async function agentNode(state: AgentStateType) {
 
   if (response.tool_calls && response.tool_calls.length > 0) {
     console.log(
-      `   → 调用: ${response.tool_calls.map((t) => t.name).join(", ")}`
+      `   → 调用: ${response.tool_calls.map((t) => t.name).join(", ")}`,
     );
   } else {
     console.log("   → 直接回复 (无工具调用)");
@@ -150,11 +175,14 @@ async function toolNode(state: AgentStateType) {
   let errorMessage: string | null = null;
 
   for (const call of toolCalls) {
-    const result = await executeTool(call.name, call.args as Record<string, unknown>);
+    const result = await executeTool(
+      call.name,
+      call.args as Record<string, unknown>,
+    );
     const resultStr = String(result);
 
     results.push(
-      new ToolMessage({ tool_call_id: call.id!, content: resultStr })
+      new ToolMessage({ tool_call_id: call.id!, content: resultStr }),
     );
 
     // Detect error in result (check prefix, not substring to avoid false positives)
@@ -190,13 +218,11 @@ function shouldRetry(state: AgentStateType): "agent" | typeof END {
   if (state.lastError) {
     // Check retry limit
     if (state.retryCount >= MAX_RETRIES) {
-      console.log(
-        `\n⛔ [路由器] 已达最大重试次数 (${MAX_RETRIES})。放弃。`
-      );
+      console.log(`\n⛔ [路由器] 已达最大重试次数 (${MAX_RETRIES})。放弃。`);
       return END;
     }
     console.log(
-      `\n🔄 [路由器] 检测到错误，重试中... (${state.retryCount}/${MAX_RETRIES})`
+      `\n🔄 [路由器] 检测到错误，重试中... (${state.retryCount}/${MAX_RETRIES})`,
     );
     return "agent";
   }
@@ -247,9 +273,7 @@ async function main() {
 
   const result = await app.invoke({
     messages: [
-      new HumanMessage(
-        "写一个计算 6 的阶乘的 Python 函数，然后运行它。"
-      ),
+      new HumanMessage("写一个计算 6 的阶乘的 Python 函数，然后运行它。"),
     ],
   });
 

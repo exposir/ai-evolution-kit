@@ -5,6 +5,25 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
+/* ========================================================================
+ * 📚 本文件核心学习要点
+ * ========================================================================
+ * 1. LangGraph 三要素：
+ *    - State: 使用 Annotation.Root 定义状态，reducer 模式累积消息
+ *    - Node:  agentNode (LLM 决策) + toolNode (工具执行)
+ *    - Edge:  普通边 (addEdge) + 条件边 (addConditionalEdges)
+ *
+ * 2. ReAct 循环模式：
+ *    START → agent → [需要工具?] → tools → agent → ... → END
+ *                   ↘ [不需要] → END
+ *
+ * 3. 工具绑定：model.bindTools(tools) 让 LLM 知道可调用的工具
+ *
+ * 4. 条件路由：shouldContinue() 根据 tool_calls 决定下一步
+ *
+ * 5. 图编译：graph.compile() 生成可执行的 app
+ * ======================================================================== */
+
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -66,7 +85,7 @@ const calculatorTool = tool(
         .enum(["add", "subtract", "multiply", "divide"])
         .describe("The operation to perform"),
     }),
-  }
+  },
 );
 
 const weatherTool = tool(
@@ -86,15 +105,24 @@ const weatherTool = tool(
     schema: z.object({
       city: z.string().describe("The city name to get weather for"),
     }),
-  }
+  },
 );
 
 const tools = [calculatorTool, weatherTool];
 
 // Type-safe tool executor
-async function executeTool(name: string, args: Record<string, unknown>): Promise<string> {
+async function executeTool(
+  name: string,
+  args: Record<string, unknown>,
+): Promise<string> {
   if (name === "calculator") {
-    return await calculatorTool.invoke(args as { a: number; b: number; operation: "add" | "subtract" | "multiply" | "divide" });
+    return await calculatorTool.invoke(
+      args as {
+        a: number;
+        b: number;
+        operation: "add" | "subtract" | "multiply" | "divide";
+      },
+    );
   }
   if (name === "get_weather") {
     return await weatherTool.invoke(args as { city: string });
@@ -127,7 +155,7 @@ async function agentNode(state: AgentStateType) {
   // Debug output
   if (response.tool_calls && response.tool_calls.length > 0) {
     console.log(
-      `   → 决定调用: ${response.tool_calls.map((t) => t.name).join(", ")}`
+      `   → 决定调用: ${response.tool_calls.map((t) => t.name).join(", ")}`,
     );
   } else {
     console.log("   → 决定直接回复");
@@ -147,14 +175,17 @@ async function toolNode(state: AgentStateType) {
   for (const call of toolCalls) {
     console.log(`   → 运行: ${call.name}(${JSON.stringify(call.args)})`);
 
-    const result = await executeTool(call.name, call.args as Record<string, unknown>);
+    const result = await executeTool(
+      call.name,
+      call.args as Record<string, unknown>,
+    );
     console.log(`   ← 结果: ${result}`);
 
     results.push(
       new ToolMessage({
         tool_call_id: call.id!,
         content: String(result),
-      })
+      }),
     );
   }
 

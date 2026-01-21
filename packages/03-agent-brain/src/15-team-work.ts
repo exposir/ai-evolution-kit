@@ -5,6 +5,31 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
+/* ========================================================================
+ * 📚 本文件核心学习要点
+ * ========================================================================
+ * 1. Supervisor 模式 (多 Agent 协作)：
+ *    - 主管 (Supervisor): 评估任务、分发给专家、审核产出
+ *    - 研究员 (Researcher): 搜索和分析信息
+ *    - 写手 (Writer): 撰写和编辑内容
+ *
+ * 2. 图结构：
+ *    START → supervisor → [分发] → researcher/writer → supervisor → ...
+ *                       ↘ [FINISH] → END
+ *
+ * 3. 共享状态设计：
+ *    - messages: 共享对话历史
+ *    - currentWorker: 当前工作的专家
+ *    - workLog: 记录每个专家的产出，供主管和其他专家参考
+ *
+ * 4. 角色专属配置：
+ *    - 每个角色有独立的 LLM 实例、工具集、System Prompt
+ *    - 专家完成后回报主管，主管决定下一步
+ *
+ * 5. JSON 决策格式：
+ *    { "next": "RESEARCHER|WRITER|FINISH", "instructions": "...", "reason": "..." }
+ * ======================================================================== */
+
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -71,7 +96,9 @@ const searchWebTool = tool(
       `,
       default: `"${query}" 的搜索结果：找到了关于 AI 发展和行业趋势的相关信息。`,
     };
-    const key = query.toLowerCase().includes("ai trends") ? "ai trends 2024" : "default";
+    const key = query.toLowerCase().includes("ai trends")
+      ? "ai trends 2024"
+      : "default";
     return mockResults[key];
   },
   {
@@ -80,7 +107,7 @@ const searchWebTool = tool(
     schema: z.object({
       query: z.string().describe("The search query"),
     }),
-  }
+  },
 );
 
 const analyzeTool = tool(
@@ -95,7 +122,7 @@ const analyzeTool = tool(
       topic: z.string().describe("Topic being analyzed"),
       data: z.string().describe("Data to analyze"),
     }),
-  }
+  },
 );
 
 // 写手工具
@@ -123,7 +150,7 @@ ${keyPoints.map((p: string, i: number) => `${i + 1}. ${p}`).join("\n")}
       outline: z.string().describe("Article outline/structure"),
       keyPoints: z.array(z.string()).describe("Key points to cover"),
     }),
-  }
+  },
 );
 
 const editContentTool = tool(
@@ -138,14 +165,17 @@ const editContentTool = tool(
       content: z.string().describe("Content to edit"),
       instructions: z.string().describe("Editing instructions"),
     }),
-  }
+  },
 );
 
 const researcherTools = [searchWebTool, analyzeTool];
 const writerTools = [draftArticleTool, editContentTool];
 
 // Type-safe tool executors
-async function executeResearcherTool(name: string, args: Record<string, unknown>): Promise<string> {
+async function executeResearcherTool(
+  name: string,
+  args: Record<string, unknown>,
+): Promise<string> {
   if (name === "search_web") {
     return await searchWebTool.invoke(args as { query: string });
   }
@@ -155,12 +185,19 @@ async function executeResearcherTool(name: string, args: Record<string, unknown>
   return `Error: Unknown tool "${name}"`;
 }
 
-async function executeWriterTool(name: string, args: Record<string, unknown>): Promise<string> {
+async function executeWriterTool(
+  name: string,
+  args: Record<string, unknown>,
+): Promise<string> {
   if (name === "draft_article") {
-    return await draftArticleTool.invoke(args as { title: string; outline: string; keyPoints: string[] });
+    return await draftArticleTool.invoke(
+      args as { title: string; outline: string; keyPoints: string[] },
+    );
   }
   if (name === "edit_content") {
-    return await editContentTool.invoke(args as { content: string; instructions: string });
+    return await editContentTool.invoke(
+      args as { content: string; instructions: string },
+    );
   }
   return `Error: Unknown tool "${name}"`;
 }
@@ -171,8 +208,14 @@ async function executeWriterTool(name: string, args: Record<string, unknown>): P
 
 const chatModel = process.env.CHAT_MODEL || "glm-4-flash";
 const supervisorModel = new ChatOpenAI({ model: chatModel, temperature: 0 });
-const researcherModel = new ChatOpenAI({ model: chatModel, temperature: 0 }).bindTools(researcherTools);
-const writerModel = new ChatOpenAI({ model: chatModel, temperature: 0 }).bindTools(writerTools);
+const researcherModel = new ChatOpenAI({
+  model: chatModel,
+  temperature: 0,
+}).bindTools(researcherTools);
+const writerModel = new ChatOpenAI({
+  model: chatModel,
+  temperature: 0,
+}).bindTools(writerTools);
 
 /* ========================================================================
  * SECTION 4: System Prompts
@@ -232,7 +275,7 @@ async function supervisorNode(state: TeamStateType) {
       .map(([worker, output]) => `${worker} output: ${output.slice(0, 200)}...`)
       .join("\n\n");
     contextMessages.push(
-      new SystemMessage(`Work completed so far:\n${logSummary}`)
+      new SystemMessage(`Work completed so far:\n${logSummary}`),
     );
   }
 
@@ -244,7 +287,13 @@ async function supervisorNode(state: TeamStateType) {
   try {
     // Extract JSON from response
     const jsonMatch = content.match(/\{[\s\S]*\}/);
-    decision = jsonMatch ? JSON.parse(jsonMatch[0]) : { next: "FINISH", instructions: "", reason: "Could not parse response" };
+    decision = jsonMatch
+      ? JSON.parse(jsonMatch[0])
+      : {
+          next: "FINISH",
+          instructions: "",
+          reason: "Could not parse response",
+        };
   } catch {
     console.log("   ⚠️  无法解析决策，结束流程...");
     decision = { next: "FINISH", instructions: "", reason: "Parse error" };
@@ -266,7 +315,9 @@ async function researcherNode(state: TeamStateType) {
   const lastMessage = state.messages[state.messages.length - 1];
   let instructions = "";
   try {
-    const parsed = JSON.parse((lastMessage.content as string).replace("[Supervisor] ", ""));
+    const parsed = JSON.parse(
+      (lastMessage.content as string).replace("[Supervisor] ", ""),
+    );
     instructions = parsed.instructions;
   } catch {
     instructions = "Research the requested topic";
@@ -284,9 +335,12 @@ async function researcherNode(state: TeamStateType) {
   while (response.tool_calls && response.tool_calls.length > 0) {
     const toolResults: ToolMessage[] = [];
     for (const call of response.tool_calls) {
-      const result = await executeResearcherTool(call.name, call.args as Record<string, unknown>);
+      const result = await executeResearcherTool(
+        call.name,
+        call.args as Record<string, unknown>,
+      );
       toolResults.push(
-        new ToolMessage({ tool_call_id: call.id!, content: String(result) })
+        new ToolMessage({ tool_call_id: call.id!, content: String(result) }),
       );
     }
     allMessages.push(...toolResults);
@@ -311,7 +365,9 @@ async function writerNode(state: TeamStateType) {
   const lastMessage = state.messages[state.messages.length - 1];
   let instructions = "";
   try {
-    const parsed = JSON.parse((lastMessage.content as string).replace("[Supervisor] ", ""));
+    const parsed = JSON.parse(
+      (lastMessage.content as string).replace("[Supervisor] ", ""),
+    );
     instructions = parsed.instructions;
   } catch {
     instructions = "Write content based on the research";
@@ -333,9 +389,12 @@ async function writerNode(state: TeamStateType) {
   while (response.tool_calls && response.tool_calls.length > 0) {
     const toolResults: ToolMessage[] = [];
     for (const call of response.tool_calls) {
-      const result = await executeWriterTool(call.name, call.args as Record<string, unknown>);
+      const result = await executeWriterTool(
+        call.name,
+        call.args as Record<string, unknown>,
+      );
       toolResults.push(
-        new ToolMessage({ tool_call_id: call.id!, content: String(result) })
+        new ToolMessage({ tool_call_id: call.id!, content: String(result) }),
       );
     }
     allMessages.push(...toolResults);
@@ -358,7 +417,7 @@ async function writerNode(state: TeamStateType) {
  * ======================================================================== */
 
 function routeFromSupervisor(
-  state: TeamStateType
+  state: TeamStateType,
 ): "researcher" | "writer" | typeof END {
   const worker = state.currentWorker;
 
@@ -413,8 +472,7 @@ async function main() {
   console.log("=".repeat(60));
   console.log("主管将任务分发给研究员和写手\n");
 
-  const query =
-    "研究 2024 年 AI 的主要趋势，并撰写一篇简短的博客文章。";
+  const query = "研究 2024 年 AI 的主要趋势，并撰写一篇简短的博客文章。";
 
   console.log(`📝 用户请求: ${query}`);
   console.log("=".repeat(60));

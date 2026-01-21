@@ -5,6 +5,30 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
+/* ========================================================================
+ * 📚 本文件核心学习要点
+ * ========================================================================
+ * 1. 中断/恢复机制：
+ *    - MemorySaver: 保存执行快照，支持暂停后恢复
+ *    - interruptBefore: ["tools"] 在工具执行前暂停
+ *
+ * 2. 人机协作流程：
+ *    START → agent → [暂停] → 人工审批 → [批准] → tools → agent → END
+ *                            ↘ [拒绝] → 中止
+ *                            ↘ [跳过] → 注入跳过消息 → 继续
+ *
+ * 3. 敏感操作识别：
+ *    - SENSITIVE_TOOLS Set 定义需审批的工具
+ *    - 在 agentNode 中检测并标记敏感操作
+ *
+ * 4. 状态恢复 API：
+ *    - app.getState(config): 获取当前快照
+ *    - app.invoke(null, config): 从断点恢复执行
+ *    - app.updateState(config, newState): 修改状态后恢复
+ *
+ * 5. thread_id：每个会话唯一标识，用于状态持久化
+ * ======================================================================== */
+
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -55,7 +79,7 @@ const sendEmailTool = tool(
       subject: z.string().describe("Email subject line"),
       body: z.string().describe("Email body content"),
     }),
-  }
+  },
 );
 
 const deleteFileTool = tool(
@@ -71,7 +95,7 @@ const deleteFileTool = tool(
     schema: z.object({
       path: z.string().describe("Path to the file to delete"),
     }),
-  }
+  },
 );
 
 const getTimeTool = tool(
@@ -82,15 +106,20 @@ const getTimeTool = tool(
     name: "get_time",
     description: "Get the current time. This is a safe, read-only operation.",
     schema: z.object({}),
-  }
+  },
 );
 
 const tools = [sendEmailTool, deleteFileTool, getTimeTool];
 
 // Type-safe tool executor
-async function executeTool(name: string, args: Record<string, unknown>): Promise<string> {
+async function executeTool(
+  name: string,
+  args: Record<string, unknown>,
+): Promise<string> {
   if (name === "send_email") {
-    return await sendEmailTool.invoke(args as { to: string; subject: string; body: string });
+    return await sendEmailTool.invoke(
+      args as { to: string; subject: string; body: string },
+    );
   }
   if (name === "delete_file") {
     return await deleteFileTool.invoke(args as { path: string });
@@ -147,12 +176,15 @@ async function toolNode(state: AgentStateType) {
   for (const call of toolCalls) {
     console.log(`   → 执行: ${call.name}`);
 
-    const result = await executeTool(call.name, call.args as Record<string, unknown>);
+    const result = await executeTool(
+      call.name,
+      call.args as Record<string, unknown>,
+    );
     results.push(
       new ToolMessage({
         tool_call_id: call.id!,
         content: String(result),
-      })
+      }),
     );
   }
 
@@ -249,7 +281,7 @@ async function runHumanInLoop(query: string) {
   // Initial invocation - will pause before tools
   let result = await app.invoke(
     { messages: [new HumanMessage(query)] },
-    config
+    config,
   );
 
   // Loop: check for interrupts, get approval, resume
@@ -272,9 +304,7 @@ async function runHumanInLoop(query: string) {
     console.log(formatToolCallsForReview(result.messages));
 
     // Ask for human approval
-    const answer = await askHuman(
-      "\n👤 批准这些操作？(yes/no/skip): "
-    );
+    const answer = await askHuman("\n👤 批准这些操作？(yes/no/skip): ");
 
     if (answer === "yes" || answer === "y") {
       console.log("\n✅ 已批准！继续执行...");
@@ -283,13 +313,15 @@ async function runHumanInLoop(query: string) {
     } else if (answer === "skip" || answer === "s") {
       console.log("\n⏭️  跳过工具执行...");
       // Inject a message saying tools were skipped
-      const lastMessage = result.messages[result.messages.length - 1] as AIMessage;
+      const lastMessage = result.messages[
+        result.messages.length - 1
+      ] as AIMessage;
       const skipMessages: ToolMessage[] = (lastMessage.tool_calls || []).map(
         (call) =>
           new ToolMessage({
             tool_call_id: call.id!,
             content: "已跳过: 人工拒绝执行此操作。",
-          })
+          }),
       );
       // Update state with skip messages and resume
       await app.updateState(config, { messages: skipMessages });
@@ -315,13 +347,11 @@ async function runHumanInLoop(query: string) {
 async function main() {
   console.log("🧑‍💼 人机协作演示");
   console.log("=" + "=".repeat(59));
-  console.log(
-    "此演示展示如何在敏感操作前暂停等待人工审批。\n"
-  );
+  console.log("此演示展示如何在敏感操作前暂停等待人工审批。\n");
 
   // 测试用例: 敏感操作 (发送邮件)
   await runHumanInLoop(
-    "请发送一封邮件给 boss@company.com，内容是项目进度汇报，主题为「周报更新」"
+    "请发送一封邮件给 boss@company.com，内容是项目进度汇报，主题为「周报更新」",
   );
 }
 
