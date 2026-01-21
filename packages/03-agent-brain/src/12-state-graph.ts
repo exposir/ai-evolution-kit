@@ -226,19 +226,17 @@ async function main() {
   console.log("🧠 LangGraph 状态图演示");
   console.log("=" + "=".repeat(59));
 
-  // Test 1: Tool usage (calculator)
-  await runAgent("What is 42 multiplied by 17?");
+  // 测试 1: 工具调用 (计算器)
+  await runAgent("42 乘以 17 等于多少？");
 
-  // Test 2: Tool usage (weather)
-  await runAgent("What's the weather like in Beijing?");
+  // 测试 2: 工具调用 (天气)
+  await runAgent("北京今天天气怎么样？");
 
-  // Test 3: Direct response (no tool needed)
-  await runAgent("Say hello in Chinese");
+  // 测试 3: 直接回复 (无需工具)
+  await runAgent("用英文说你好");
 
-  // Test 4: Multi-tool reasoning
-  await runAgent(
-    "What's 100 divided by 4, and also tell me the weather in Shanghai?"
-  );
+  // 测试 4: 多工具推理
+  await runAgent("100 除以 4 等于多少？另外上海天气如何？");
 }
 
 main().catch(console.error);

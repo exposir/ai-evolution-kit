@@ -134,7 +134,7 @@ async function agentNode(state: AgentStateType) {
 }
 
 async function toolNode(state: AgentStateType) {
-  console.log("\n🔧 [Tool Node] Executing...");
+  console.log("\n🔧 [工具节点] 执行中...");
 
   const lastMessage = state.messages[state.messages.length - 1] as AIMessage;
   const toolCalls = lastMessage.tool_calls || [];
@@ -241,7 +241,7 @@ async function main() {
   const result = await app.invoke({
     messages: [
       new HumanMessage(
-        "Write a Python function to calculate the factorial of 6, then run it."
+        "写一个计算 6 的阶乘的 Python 函数，然后运行它。"
       ),
     ],
   });

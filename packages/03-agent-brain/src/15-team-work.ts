@@ -48,21 +48,21 @@ type TeamStateType = typeof TeamState.State;
  * - Writer: 撰写内容
  * ======================================================================== */
 
-// Researcher tools
+// 研究员工具
 const searchWebTool = tool(
   async ({ query }) => {
     console.log(`   🔍 搜索中: "${query}"`);
-    // Mock search results
+    // 模拟搜索结果
     const mockResults: Record<string, string> = {
       "ai trends 2024": `
-Key AI Trends in 2024:
-1. Multimodal AI - Models that understand text, images, and audio
-2. AI Agents - Autonomous systems that can plan and execute tasks
-3. Small Language Models - Efficient, specialized models for edge devices
-4. AI Regulation - New laws and governance frameworks emerging
-5. AI in Healthcare - Diagnostic tools and drug discovery acceleration
+2024 年 AI 关键趋势：
+1. 多模态 AI - 能理解文本、图像和音频的模型
+2. AI 智能体 - 能规划和执行任务的自主系统
+3. 小型语言模型 - 面向边缘设备的高效专用模型
+4. AI 监管 - 新法规和治理框架陆续出台
+5. 医疗 AI - 诊断工具和药物研发加速
       `,
-      default: `Search results for "${query}": Found relevant information about AI developments and industry trends.`,
+      default: `"${query}" 的搜索结果：找到了关于 AI 发展和行业趋势的相关信息。`,
     };
     const key = query.toLowerCase().includes("ai trends") ? "ai trends 2024" : "default";
     return mockResults[key];
@@ -79,7 +79,7 @@ Key AI Trends in 2024:
 const analyzeTool = tool(
   async ({ topic, data }) => {
     console.log(`   📊 分析中: "${topic}"`);
-    return `Analysis of ${topic}: The data indicates strong growth potential. Key insights: ${data.slice(0, 100)}...`;
+    return `${topic} 分析结果：数据显示增长潜力强劲。关键洞察：${data.slice(0, 100)}...`;
   },
   {
     name: "analyze_data",
@@ -91,7 +91,7 @@ const analyzeTool = tool(
   }
 );
 
-// Writer tools
+// 写手工具
 const draftArticleTool = tool(
   async ({ title, outline, keyPoints }) => {
     console.log(`   ✍️  撰写中: "${title}"`);
@@ -100,11 +100,11 @@ const draftArticleTool = tool(
 
 ${outline}
 
-## Key Takeaways
+## 核心要点
 ${keyPoints.map((p: string, i: number) => `${i + 1}. ${p}`).join("\n")}
 
-## Conclusion
-Based on our research, these trends will shape the AI landscape in the coming years.
+## 总结
+基于我们的研究，这些趋势将在未来几年塑造 AI 领域的格局。
     `;
     return article;
   },
@@ -122,7 +122,7 @@ Based on our research, these trends will shape the AI landscape in the coming ye
 const editContentTool = tool(
   async ({ content, instructions }) => {
     console.log(`   ✂️  编辑中...`);
-    return `[EDITED] ${content}\n\n(Applied edits: ${instructions})`;
+    return `[已编辑] ${content}\n\n(应用的修改: ${instructions})`;
   },
   {
     name: "edit_content",
@@ -406,7 +406,7 @@ async function main() {
   console.log("主管将任务分发给研究员和写手\n");
 
   const query =
-    "Research the top AI trends in 2024 and write a short blog post about them.";
+    "研究 2024 年 AI 的主要趋势，并撰写一篇简短的博客文章。";
 
   console.log(`📝 用户请求: ${query}`);
   console.log("=".repeat(60));

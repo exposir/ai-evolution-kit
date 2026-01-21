@@ -34,11 +34,11 @@ type AgentStateType = typeof AgentState.State;
 
 const sendEmailTool = tool(
   async ({ to, subject, body }) => {
-    // Simulate sending email
-    console.log("\n   📧 [MOCK] Email sent successfully!");
-    console.log(`      To: ${to}`);
-    console.log(`      Subject: ${subject}`);
-    return `Email sent to ${to} with subject "${subject}"`;
+    // 模拟发送邮件
+    console.log("\n   📧 [模拟] 邮件发送成功！");
+    console.log(`      收件人: ${to}`);
+    console.log(`      主题: ${subject}`);
+    return `邮件已发送至 ${to}，主题为「${subject}」`;
   },
   {
     name: "send_email",
@@ -53,9 +53,9 @@ const sendEmailTool = tool(
 
 const deleteFileTool = tool(
   async ({ path }) => {
-    // Simulate file deletion
-    console.log(`\n   🗑️ [MOCK] File deleted: ${path}`);
-    return `File "${path}" has been deleted.`;
+    // 模拟文件删除
+    console.log(`\n   🗑️ [模拟] 文件已删除: ${path}`);
+    return `文件「${path}」已被删除。`;
   },
   {
     name: "delete_file",
@@ -69,7 +69,7 @@ const deleteFileTool = tool(
 
 const getTimeTool = tool(
   async () => {
-    return `Current time: ${new Date().toISOString()}`;
+    return `当前时间: ${new Date().toISOString()}`;
   },
   {
     name: "get_time",
@@ -266,7 +266,7 @@ async function runHumanInLoop(query: string) {
 
     // Ask for human approval
     const answer = await askHuman(
-      "\n👤 Approve these operations? (yes/no/skip): "
+      "\n👤 批准这些操作？(yes/no/skip): "
     );
 
     if (answer === "yes" || answer === "y") {
@@ -312,9 +312,9 @@ async function main() {
     "此演示展示如何在敏感操作前暂停等待人工审批。\n"
   );
 
-  // Test case: sensitive operation (send email)
+  // 测试用例: 敏感操作 (发送邮件)
   await runHumanInLoop(
-    "Please send an email to boss@company.com about the project status. Subject: Weekly Update"
+    "请发送一封邮件给 boss@company.com，内容是项目进度汇报，主题为「周报更新」"
   );
 }
 
