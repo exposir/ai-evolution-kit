@@ -14,7 +14,8 @@ export async function POST(req: Request) {
   const result = streamText({
     model,
     messages,
-    system: "You are a helpful assistant. Respond concisely in the same language as the user.",
+    system:
+      "You are a helpful assistant. Respond concisely in the same language as the user.",
   });
 
   return result.toDataStreamResponse();
