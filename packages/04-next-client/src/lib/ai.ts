@@ -9,8 +9,8 @@ import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 
 export const zhipu = createOpenAICompatible({
   name: "zhipu",
-  baseURL: process.env.OPENAI_BASE_URL || "https://open.bigmodel.cn/api/paas/v4",
+  baseURL: process.env.OPENAI_BASE_URL,
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export const model = zhipu("glm-4-flash");
+export const model = zhipu(process.env.CHAT_MODEL || "glm-4-flash");

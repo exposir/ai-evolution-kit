@@ -109,7 +109,7 @@ const SENSITIVE_TOOLS = new Set(["send_email", "delete_file"]);
  * ======================================================================== */
 
 const model = new ChatOpenAI({
-  model: "glm-4-flash",
+  model: process.env.CHAT_MODEL || "glm-4-flash",
   temperature: 0,
 }).bindTools(tools);
 

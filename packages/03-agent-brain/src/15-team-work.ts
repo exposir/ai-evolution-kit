@@ -169,9 +169,10 @@ async function executeWriterTool(name: string, args: Record<string, unknown>): P
  * SECTION 3: LLM Instances for Each Role
  * ======================================================================== */
 
-const supervisorModel = new ChatOpenAI({ model: "glm-4-flash", temperature: 0 });
-const researcherModel = new ChatOpenAI({ model: "glm-4-flash", temperature: 0 }).bindTools(researcherTools);
-const writerModel = new ChatOpenAI({ model: "glm-4-flash", temperature: 0 }).bindTools(writerTools);
+const chatModel = process.env.CHAT_MODEL || "glm-4-flash";
+const supervisorModel = new ChatOpenAI({ model: chatModel, temperature: 0 });
+const researcherModel = new ChatOpenAI({ model: chatModel, temperature: 0 }).bindTools(researcherTools);
+const writerModel = new ChatOpenAI({ model: chatModel, temperature: 0 }).bindTools(writerTools);
 
 /* ========================================================================
  * SECTION 4: System Prompts

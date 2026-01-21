@@ -99,7 +99,7 @@ async function executeTool(name: string, args: Record<string, unknown>): Promise
  * ======================================================================== */
 
 const model = new ChatOpenAI({
-  model: "glm-4-flash",
+  model: process.env.CHAT_MODEL || "glm-4-flash",
   temperature: 0,
 }).bindTools(tools);
 
