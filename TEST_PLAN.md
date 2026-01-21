@@ -229,10 +229,10 @@ export default defineConfig({
 | Milestone | 单元测试 | 验收清单 | 状态 |
 |-----------|----------|----------|------|
 | M1 Runtime Lab | ✅ 11/11 | ✅ 8/8 | ✅ 全部通过 |
-| M2 Data Foundation | ✅ 9/9 | 🔶 1/3 | ⏳ Ch10/Ch11 需 Supabase |
-| M3 Agent Brain | ⬜ | ⬜ | ⏳ 待开发 |
-| M4 Next Client | ⬜ | ⬜ | ⏳ 待开发 |
-| M5 Server Core | ⬜ | ⬜ | ⏳ 待开发 |
+| M2 Data Foundation | ✅ 9/9 | ✅ 3/3 | ✅ 全部通过 |
+| M3 Agent Brain | ✅ | ✅ 4/4 | ✅ 全部通过 |
+| M4 Next Client | ✅ | ✅ 4/4 | ✅ 全部通过 |
+| M5 Server Core | ✅ | 🔶 2/3 | ⏳ Ch21 需 Redis |
 
 ---
 
@@ -313,10 +313,89 @@ EMBEDDING_MODEL=embedding-3
 ✓ RecursiveTextSplitter (3 tests)
 ```
 
-**M2 验收清单**: 🔶 1/3 通过
+**M2 验收清单**: ✅ 3/3 通过
 
 | 章节 | 状态 | 说明 |
 |------|------|------|
 | Ch9 | ✅ | 文档清洗切分成功，生成 3 个 Chunks |
-| Ch10 | ⏳ | 需要配置 SUPABASE_URL 和 SUPABASE_SERVICE_KEY |
-| Ch11 | ⏳ | 需要配置 Supabase 后验收 |
+| Ch10 | ✅ | 向量入库成功（智谱 embedding-3，2048 维） |
+| Ch11 | ✅ | 混合检索成功，返回语义相关结果 |
+
+---
+
+### 2026-01-21: M2 Ch10 验收
+
+**环境配置**:
+```
+OPENAI_BASE_URL=https://open.bigmodel.cn/api/paas/v4
+EMBEDDING_MODEL=embedding-3  # 512 维
+SUPABASE_URL=https://xxx.supabase.co
+SUPABASE_SERVICE_KEY=eyJxxx
+```
+
+**验收结果**: ✅ 通过
+
+```
+==================================================
+  第十章: 向量数据库
+==================================================
+
+[Extract] 读取文件: sample.md
+[Extract] 原始长度: 501 字符
+[Clean] 清洗后长度: 501 字符
+[Split] 生成 3 个 Chunks
+[VectorDB] 初始化完成
+[VectorDB] Supabase URL: https://xxx.supabase.co
+
+[状态] 当前文档数: 0
+[Insert] 准备插入 3 条记录
+[Embedding] 处理批次 1/1
+[Insert] 批次 1 完成
+[Insert] 全部插入完成!
+[状态] 插入后文档数: 3
+
+[完成] 向量数据已持久化到 Supabase
+```
+
+**关键配置**:
+- 向量维度：2048（智谱 embedding-3）
+- 数据库表：`documents` (VECTOR(2048))
+- 环境变量从项目根目录 `/.env` 加载
+- 使用 fetch 绕过 OpenAI SDK 解析问题
+
+---
+
+### 2026-01-21: M2 Ch11 验收
+
+**验收结果**: ✅ 通过
+
+```
+==================================================
+  第十一章: 智能搜索
+==================================================
+
+[SmartSearch] 初始化完成
+Search: AI
+
+========================================
+[混合检索] 开始
+========================================
+
+[向量检索] Query: "AI"
+[向量检索] 找到 3 条结果
+[混合检索] 向量结果充足，跳过关键词检索
+
+[检索结果]
+  [1] 相似度: 45.7% (vector)
+      # AI Evolution Kit 项目介绍...
+  [2] 相似度: 44.9% (vector)
+      状态编排 - Vercel AI SDK...
+  [3] 相似度: 39.6% (vector)
+      个 Milestone，共 22 个章节...
+```
+
+**关键发现**:
+- OpenAI SDK 解析智谱 embedding 响应时返回全 0 向量
+- 解决方案：改用 fetch 直接调用 API
+- 智谱 embedding-3 实际维度：2048（超过 pgvector 索引限制 2000）
+- 当前无索引运行，数据量大时需换用 ≤2000 维模型

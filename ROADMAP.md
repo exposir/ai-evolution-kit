@@ -17,7 +17,9 @@
 | M2        | Data Foundation | Ch 9-11  | ✅ 已完成 | `packages/02-data-forge`  |
 | M3        | Agent Brain     | Ch 12-15 | ✅ 已完成 | `packages/03-agent-brain` |
 | M4        | Next Client     | Ch 16-19 | ✅ 已完成 | `packages/04-next-client` |
-| M5        | Server Core     | Ch 20-22 | ✅ 已完成 | `packages/05-server-core` |
+| M5        | Server Core     | Ch 20-22 | 🔶 21/22  | `packages/05-server-core` |
+
+> **当前进度**: 21/22 章节验收通过，Ch21 需配置 Redis
 
 ---
 
@@ -48,16 +50,14 @@
 | 章节 | 主题         | 关键技术                            | 文件                 | 代码 | 验收 |
 | ---- | ------------ | ----------------------------------- | -------------------- | ---- | ---- |
 | 09   | 复杂文档加载 | PDF 解析, Markdown 清洗, 递归切分   | `09-doc-cleaner.ts`  | ✅   | ✅   |
-| 10   | 向量数据库   | Supabase (pgvector), 批量 Embedding | `10-vector-db.ts`    | ✅   | ⏳   |
-| 11   | 高级检索     | Hybrid Search, Rerank 重排序        | `11-smart-search.ts` | ✅   | ⏳   |
+| 10   | 向量数据库   | Supabase (pgvector), 批量 Embedding | `10-vector-db.ts`    | ✅   | ✅   |
+| 11   | 高级检索     | Hybrid Search, Rerank 重排序        | `11-smart-search.ts` | ✅   | ✅   |
 
-**验收阻塞**: Ch10-11 需配置 `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `OPENAI_API_KEY`
+**验收状态**: ✅ 全部通过 (2026-01-21)
 
-**准备工作**:
-
-- [ ] 注册 Supabase 账号
-- [ ] 创建项目获取 Project URL 和 Service Role Key
-- [ ] 执行 SQL 启用 vector 扩展（见 `10-vector-db.ts` 中的 `SETUP_SQL`）
+**环境配置**:
+- 智谱 embedding-3（2048 维，使用 fetch 绕过 SDK 解析问题）
+- Supabase + pgvector（无索引，因 2048 维超过索引限制）
 
 ---
 
@@ -103,7 +103,7 @@
 
 ---
 
-## Milestone 5: Server Core ✅
+## Milestone 5: Server Core 🔶
 
 **目标**: 解决并发、安全、成本问题，构建健壮的后端服务
 
@@ -113,7 +113,7 @@
 | 21   | Redis Memory & Caching     | Redis Checkpointer, 缓存拦截器 | `memory/*.ts`      | ✅   | ⏳   |
 | 22   | Guardrails (卫兵与限流)    | @nestjs/throttler, Auth Guard  | `common/guards/*`  | ✅   | ✅   |
 
-**验收状态**: Ch20/22 ✅ 通过 | Ch21 需配置 `REDIS_URL`
+**验收状态**: 🔶 Ch20/22 通过 | Ch21 需配置 `REDIS_URL`
 
 **API 端点**:
 
@@ -162,17 +162,19 @@ curl -N -X POST http://localhost:3001/chat/stream \
 
 ---
 
-## 项目完成
+## 项目进度
 
-🎉 **22/22 章节全部完成！**
+🔶 **21/22 章节验收通过**
 
-从 Script Boy 到 AI Architect 的进化之路已走完。项目涵盖：
+从 Script Boy 到 AI Architect 的进化之路已接近完成。项目涵盖：
 
-- **M1**: AI 基础能力 (Tools + RAG)
-- **M2**: 生产级数据处理 (向量数据库 + 混合检索)
-- **M3**: 复杂系统编排 (LangGraph 状态机)
-- **M4**: 流式交互前端 (Next.js + AI SDK)
-- **M5**: 健壮后端服务 (NestJS + Redis + 限流)
+- **M1**: AI 基础能力 (Tools + RAG) ✅
+- **M2**: 生产级数据处理 (向量数据库 + 混合检索) ✅
+- **M3**: 复杂系统编排 (LangGraph 状态机) ✅
+- **M4**: 流式交互前端 (Next.js + AI SDK) ✅
+- **M5**: 健壮后端服务 (NestJS + Redis + 限流) 🔶 Ch21 待验收
+
+**待完成**：Ch21 Redis Memory & Caching（需配置 `REDIS_URL`）
 
 ---
 

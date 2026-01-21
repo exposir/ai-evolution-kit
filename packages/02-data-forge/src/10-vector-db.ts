@@ -50,7 +50,13 @@
 //    - Postgres-Meta (TS): https://github.com/supabase/postgres-meta (管理数据库结构的 API)
 //    - pg_graphql (Rust): https://github.com/supabase/pg_graphql (Postgres 的 GraphQL 扩展)
 
-import "dotenv/config";
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+
+// 从项目根目录加载 .env
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import OpenAI from "openai";
 import { Chunk, processDocument } from "./09-doc-cleaner.js";
@@ -80,16 +86,19 @@ export interface DocumentRow {
 // Supabase 建表 SQL (需要在 Supabase 后台执行)
 // ============================================
 
+// 向量维度配置（智谱 embedding-3 = 2048）
+export const VECTOR_DIMENSION = 2048;
+
 export const SETUP_SQL = `
 -- 1. 启用 vector 扩展
 CREATE EXTENSION IF NOT EXISTS vector;
 
--- 2. 创建文档表
+-- 2. 创建文档表 (2048 维适配智谱 embedding-3)
 CREATE TABLE IF NOT EXISTS documents (
   id BIGSERIAL PRIMARY KEY,
   content TEXT NOT NULL,
   metadata JSONB DEFAULT '{}',
-  embedding VECTOR(1536),
+  embedding VECTOR(2048),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -101,7 +110,7 @@ WITH (lists = 100);
 
 -- 4. 创建检索函数
 CREATE OR REPLACE FUNCTION match_documents (
-  query_embedding VECTOR(1536),
+  query_embedding VECTOR(2048),
   match_threshold FLOAT DEFAULT 0.7,
   match_count INT DEFAULT 5
 )
@@ -134,7 +143,8 @@ $$;
 
 export class VectorDB {
   private supabase: SupabaseClient;
-  private openai: OpenAI;
+  private embeddingUrl: string;
+  private embeddingModel: string;
 
   constructor() {
     if (!SUPABASE_URL || !SUPABASE_KEY) {
@@ -145,24 +155,37 @@ export class VectorDB {
     }
 
     this.supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-    this.openai = new OpenAI({
-      apiKey: OPENAI_API_KEY,
-      baseURL: OPENAI_BASE_URL,
-    });
+    this.embeddingUrl = `${OPENAI_BASE_URL || "https://api.openai.com/v1"}/embeddings`;
+    this.embeddingModel = process.env.EMBEDDING_MODEL || "text-embedding-3-small";
 
     console.log("[VectorDB] 初始化完成");
     console.log(`[VectorDB] Supabase URL: ${SUPABASE_URL}`);
+    console.log(`[VectorDB] Embedding Model: ${this.embeddingModel}`);
   }
 
   /**
-   * 生成单个文本的 Embedding
+   * 生成单个文本的 Embedding（使用 fetch 绕过 OpenAI SDK 解析问题）
    */
   async getEmbedding(text: string): Promise<number[]> {
-    const response = await this.openai.embeddings.create({
-      model: process.env.EMBEDDING_MODEL || "text-embedding-3-small",
-      input: text,
+    const response = await fetch(this.embeddingUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: this.embeddingModel,
+        input: text,
+      }),
     });
-    return response.data[0].embedding;
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Embedding API 错误: ${response.status} - ${error}`);
+    }
+
+    const data = await response.json();
+    return data.data[0].embedding;
   }
 
   /**
@@ -181,12 +204,25 @@ export class VectorDB {
         `[Embedding] 处理批次 ${Math.floor(i / batchSize) + 1}/${Math.ceil(texts.length / batchSize)}`,
       );
 
-      const response = await this.openai.embeddings.create({
-        model: process.env.EMBEDDING_MODEL || "text-embedding-3-small",
-        input: batch,
+      const response = await fetch(this.embeddingUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: this.embeddingModel,
+          input: batch,
+        }),
       });
 
-      embeddings.push(...response.data.map((d) => d.embedding));
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Embedding API 错误: ${response.status} - ${error}`);
+      }
+
+      const data = await response.json();
+      embeddings.push(...data.data.map((d: any) => d.embedding));
 
       // Rate Limit 保护
       if (i + batchSize < texts.length) {
@@ -292,7 +328,7 @@ async function main() {
 
   try {
     // 1. 处理文档
-    const chunks = await processDocument("../sample.md", {
+    const chunks = await processDocument("./sample.md", {
       chunkSize: 300,
       chunkOverlap: 50,
     });

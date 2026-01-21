@@ -178,48 +178,48 @@ async function hybridSearch(query: string, limit: number = 5) {
 
 ## Supabase 配置
 
-在 Supabase SQL Editor 中执行以下脚本：
+在 Supabase SQL Editor 中执行以下脚本（**2048 维适配智谱 embedding-3**）：
 
 ```sql
 -- 1. 启用 pgvector 扩展
-create extension if not exists vector;
+CREATE EXTENSION IF NOT EXISTS vector;
 
--- 2. 创建文档表
-create table documents (
-  id bigserial primary key,
-  content text,
-  metadata jsonb,
-  embedding vector(1536)  -- OpenAI: 1536, 智谱: 512
+-- 2. 创建文档表 (2048 维，无索引避免维度限制)
+CREATE TABLE documents (
+  id BIGSERIAL PRIMARY KEY,
+  content TEXT NOT NULL,
+  metadata JSONB DEFAULT '{}',
+  embedding VECTOR(2048),
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 3. 创建向量索引 (加速检索)
-create index on documents using ivfflat (embedding vector_cosine_ops)
-with (lists = 100);
-
--- 4. 创建检索函数
-create or replace function match_documents (
-  query_embedding vector(1536),
-  match_threshold float,
-  match_count int
-) returns table (
-  id bigint,
-  content text,
-  metadata jsonb,
-  similarity float
-) language sql stable as $$
-  select
-    id,
-    content,
-    metadata,
-    1 - (embedding <=> query_embedding) as similarity
-  from documents
-  where 1 - (embedding <=> query_embedding) > match_threshold
-  order by similarity desc
-  limit match_count;
+-- 3. 创建检索函数
+CREATE OR REPLACE FUNCTION match_documents (
+  query_embedding VECTOR(2048),
+  match_threshold FLOAT DEFAULT 0.7,
+  match_count INT DEFAULT 5
+) RETURNS TABLE (
+  id BIGINT,
+  content TEXT,
+  metadata JSONB,
+  similarity FLOAT
+) LANGUAGE plpgsql AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    documents.id,
+    documents.content,
+    documents.metadata,
+    1 - (documents.embedding <=> query_embedding) AS similarity
+  FROM documents
+  WHERE 1 - (documents.embedding <=> query_embedding) > match_threshold
+  ORDER BY similarity DESC
+  LIMIT match_count;
+END;
 $$;
 ```
 
-> **注意**: 如果使用智谱 AI 的 `embedding-3` 模型，向量维度为 512，需要将 `vector(1536)` 改为 `vector(512)`。
+> **注意**：智谱 embedding-3 = 2048 维，超过 pgvector 索引限制（2000），需无索引运行。数据量大时建议换用 ≤2000 维的模型。
 
 ## 文件结构
 

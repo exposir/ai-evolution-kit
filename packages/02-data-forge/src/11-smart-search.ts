@@ -15,7 +15,13 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
-import 'dotenv/config';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// 从项目根目录加载 .env
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 import * as readline from 'node:readline';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
@@ -53,7 +59,8 @@ export interface SearchOptions {
 
 export class SmartSearch {
   private supabase: SupabaseClient;
-  private openai: OpenAI;
+  private embeddingUrl: string;
+  private embeddingModel: string;
 
   constructor() {
     if (!SUPABASE_URL || !SUPABASE_KEY) {
@@ -64,20 +71,35 @@ export class SmartSearch {
     }
 
     this.supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-    this.openai = new OpenAI({ apiKey: OPENAI_API_KEY, baseURL: OPENAI_BASE_URL });
+    this.embeddingUrl = `${OPENAI_BASE_URL || 'https://api.openai.com/v1'}/embeddings`;
+    this.embeddingModel = process.env.EMBEDDING_MODEL || 'text-embedding-3-small';
 
     console.log('[SmartSearch] 初始化完成');
   }
 
   /**
-   * 生成查询向量
+   * 生成查询向量（使用 fetch 绕过 OpenAI SDK 解析问题）
    */
   private async getQueryEmbedding(query: string): Promise<number[]> {
-    const response = await this.openai.embeddings.create({
-      model: process.env.EMBEDDING_MODEL || 'text-embedding-3-small',
-      input: query,
+    const response = await fetch(this.embeddingUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: this.embeddingModel,
+        input: query,
+      }),
     });
-    return response.data[0].embedding;
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Embedding API 错误: ${response.status} - ${error}`);
+    }
+
+    const data = await response.json();
+    return data.data[0].embedding;
   }
 
   /**
@@ -267,12 +289,12 @@ async function main() {
     try {
       // 执行混合检索
       const results = await search.hybridSearch(query, {
-        threshold: 0.6,
+        threshold: 0.3,  // 降低阈值适配智谱 embedding
         limit: 3,
       });
 
       // Rerank
-      const reranked = search.rerank(results, 0.5);
+      const reranked = search.rerank(results, 0.2);  // 降低阈值
 
       // 输出结果
       console.log('\n[检索结果]');
