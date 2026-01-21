@@ -7,19 +7,20 @@
 
 # AI Evolution Kit - 完整开发路线图
 
-> 从 Script Boy 进化为 AI Architect 的 22 章节学习计划
+> 从 Script Boy 进化为 AI Architect 的 22 章节学习计划 + 全栈验证
 
 ## 进度概览
 
-| Milestone | 名称            | 章节     | 状态      | 目录                      |
-| --------- | --------------- | -------- | --------- | ------------------------- |
-| M1        | Runtime Lab     | Ch 1-8   | ✅ 已完成 | `packages/01-runtime-lab` |
-| M2        | Data Foundation | Ch 9-11  | ✅ 已完成 | `packages/02-data-forge`  |
-| M3        | Agent Brain     | Ch 12-15 | ✅ 已完成 | `packages/03-agent-brain` |
-| M4        | Next Client     | Ch 16-19 | ✅ 已完成 | `packages/04-next-client` |
-| M5        | Server Core     | Ch 20-22 | 🔶 21/22  | `packages/05-server-core` |
+| Milestone | 名称            | 章节     | 状态      | 目录                         |
+| --------- | --------------- | -------- | --------- | ---------------------------- |
+| M1        | Runtime Lab     | Ch 1-8   | ✅ 已完成 | `packages/01-runtime-lab`    |
+| M2        | Data Foundation | Ch 9-11  | ✅ 已完成 | `packages/02-data-forge`     |
+| M3        | Agent Brain     | Ch 12-15 | ✅ 已完成 | `packages/03-agent-brain`    |
+| M4        | Next Client     | Ch 16-19 | ✅ 已完成 | `packages/04-next-client`    |
+| M5        | Server Core     | Ch 20-22 | ✅ 已完成 | `packages/05-server-core`    |
+| M6        | Fullstack Demo  | 验证     | ✅ 已完成 | `packages/06-fullstack-demo` |
 
-> **当前进度**: 21/22 章节验收通过，Ch21 需配置 Redis
+> **当前进度**: 22/22 章节验收通过 + 全栈验证完成 🎉
 
 ---
 
@@ -103,17 +104,21 @@
 
 ---
 
-## Milestone 5: Server Core 🔶
+## Milestone 5: Server Core ✅
 
 **目标**: 解决并发、安全、成本问题，构建健壮的后端服务
 
 | 章节 | 主题                       | 关键技术                       | 文件               | 代码 | 验收 |
 | ---- | -------------------------- | ------------------------------ | ------------------ | ---- | ---- |
 | 20   | The Fortress (NestJS 架构) | Controller, Service, Guard, DI | `chat/*.ts`        | ✅   | ✅   |
-| 21   | Redis Memory & Caching     | Redis Checkpointer, 缓存拦截器 | `memory/*.ts`      | ✅   | ⏳   |
+| 21   | Redis Memory & Caching     | Redis Checkpointer, 缓存拦截器 | `memory/*.ts`      | ✅   | ✅   |
 | 22   | Guardrails (卫兵与限流)    | @nestjs/throttler, Auth Guard  | `common/guards/*`  | ✅   | ✅   |
 
-**验收状态**: 🔶 Ch20/22 通过 | Ch21 需配置 `REDIS_URL`
+**验收状态**: ✅ 全部通过 (2026-01-22)
+
+**环境配置**:
+- DeepSeek API (`https://api.deepseek.com`)
+- Upstash Redis (`rediss://...@content-tomcat-47806.upstash.io:6379`)
 
 **API 端点**:
 
@@ -162,19 +167,69 @@ curl -N -X POST http://localhost:3001/chat/stream \
 
 ---
 
+## Milestone 6: Fullstack Demo ✅
+
+**目标**: 可视化验证 M5 后端的全部功能，体验完整的前后端协作
+
+| 功能 | 说明 | 技术 | 验收 |
+| ---- | ---- | ---- | ---- |
+| 健康监控 | 实时显示 M5 和 Redis 状态 | fetch + setInterval | ✅ |
+| 同步对话 | 完整响应后显示 | POST /api/chat | ✅ |
+| 流式对话 | 打字机效果 | SSE + ReadableStream | ✅ |
+| 会话持久化 | sessionId 跨请求保持上下文 | Redis + MemoryService | ✅ |
+| 限流验证 | 触发 429 | ThrottlerGuard | ✅ |
+
+**验收状态**: ✅ 全部通过 (2026-01-22)
+
+**架构**:
+
+```
+┌─────────────────────────────────────────┐
+│       M6: Next.js (port 3002)           │
+│  ┌─────────────────────────────────┐   │
+│  │         React Frontend          │   │
+│  └──────────────┬──────────────────┘   │
+│                 │ rewrite /api/*        │
+└─────────────────┼──────────────────────┘
+                  ▼
+┌─────────────────────────────────────────┐
+│       M5: NestJS (port 3001)            │
+│  ┌──────┐  ┌──────┐  ┌──────┐         │
+│  │ Ch20 │  │ Ch21 │  │ Ch22 │         │
+│  │ Chat │  │Redis │  │限流  │         │
+│  └──────┘  └──────┘  └──────┘         │
+└─────────────────────────────────────────┘
+```
+
+**运行**:
+
+```bash
+# 方式 1: 分别启动
+cd packages/05-server-core && pnpm dev      # 端口 3001
+cd packages/06-fullstack-demo && pnpm dev   # 端口 3002
+
+# 方式 2: 一键启动
+cd packages/06-fullstack-demo && pnpm demo
+```
+
+**访问**: http://localhost:3002
+
+---
+
 ## 项目进度
 
-🔶 **21/22 章节验收通过**
+✅ **22/22 章节验收通过 + 全栈验证完成**
 
-从 Script Boy 到 AI Architect 的进化之路已接近完成。项目涵盖：
+从 Script Boy 到 AI Architect 的进化之路已完成。项目涵盖：
 
 - **M1**: AI 基础能力 (Tools + RAG) ✅
 - **M2**: 生产级数据处理 (向量数据库 + 混合检索) ✅
 - **M3**: 复杂系统编排 (LangGraph 状态机) ✅
 - **M4**: 流式交互前端 (Next.js + AI SDK) ✅
-- **M5**: 健壮后端服务 (NestJS + Redis + 限流) 🔶 Ch21 待验收
+- **M5**: 健壮后端服务 (NestJS + Redis + 限流) ✅
+- **M6**: 全栈可视化验证 (Next.js → NestJS) ✅
 
-**待完成**：Ch21 Redis Memory & Caching（需配置 `REDIS_URL`）
+🎉 **恭喜完成全部 Milestone！**
 
 ---
 

@@ -7,21 +7,22 @@
 
 # AI Evolution Kit
 
-> 从 Script Boy 进化为 AI Architect 的 22 章节学习计划
+> 从 Script Boy 进化为 AI Architect 的 22 章节学习计划 + 全栈验证
 
 一个系统化的 AI 应用开发学习项目，涵盖从基础 Chat 到生产级 Agent 系统的完整技术栈。
 
 ## 项目进度
 
-| Milestone | 名称            | 章节     | 状态      | 目录                      |
-| --------- | --------------- | -------- | --------- | ------------------------- |
-| M1        | Runtime Lab     | Ch 1-8   | ✅ 已完成 | `packages/01-runtime-lab` |
-| M2        | Data Foundation | Ch 9-11  | ✅ 已完成 | `packages/02-data-forge`  |
-| M3        | Agent Brain     | Ch 12-15 | ✅ 已完成 | `packages/03-agent-brain` |
-| M4        | Next Client     | Ch 16-19 | ✅ 已完成 | `packages/04-next-client` |
-| M5        | Server Core     | Ch 20-22 | ✅ 已完成 | `packages/05-server-core` |
+| Milestone | 名称            | 章节     | 状态      | 目录                         |
+| --------- | --------------- | -------- | --------- | ---------------------------- |
+| M1        | Runtime Lab     | Ch 1-8   | ✅ 已完成 | `packages/01-runtime-lab`    |
+| M2        | Data Foundation | Ch 9-11  | ✅ 已完成 | `packages/02-data-forge`     |
+| M3        | Agent Brain     | Ch 12-15 | ✅ 已完成 | `packages/03-agent-brain`    |
+| M4        | Next Client     | Ch 16-19 | ✅ 已完成 | `packages/04-next-client`    |
+| M5        | Server Core     | Ch 20-22 | ✅ 已完成 | `packages/05-server-core`    |
+| M6        | Fullstack Demo  | 验证     | ✅ 已完成 | `packages/06-fullstack-demo` |
 
-**总进度: 22/22 章节完成 (100%) 🎉**
+**总进度: 22/22 章节完成 + 全栈验证 (100%) 🎉**
 
 ## 快速开始
 
@@ -88,6 +89,11 @@ pnpm dev   # 启动 http://localhost:3000
 # Milestone 5: Server Core
 cd packages/05-server-core
 pnpm dev   # 启动 http://localhost:3001
+
+# Milestone 6: Fullstack Demo (验证 M5)
+cd packages/06-fullstack-demo
+pnpm dev   # 启动 http://localhost:3002
+# 或一键启动: pnpm demo (同时启动 M5 + M6)
 ```
 
 ### 运行测试
@@ -159,6 +165,10 @@ ai-evolution-kit/
 │           ├── memory/            # Redis 会话管理
 │           └── common/            # Guards/Interceptors
 │
+│   └── 06-fullstack-demo/  # M6: 全栈验证 ✅
+│       └── src/app/
+│           └── page.tsx           # 验证页面 (健康检查/对话/会话)
+│
 ├── doc/                    # 学习文档
 ├── ROADMAP.md             # 开发路线图
 ├── TEST_PLAN.md           # 测试计划
@@ -209,6 +219,15 @@ ai-evolution-kit/
 - **Ch20**: NestJS 架构 - Controller/Service/Module/DI
 - **Ch21**: Redis Memory - 会话持久化 (Checkpointer)
 - **Ch22**: Guardrails - 限流 (@nestjs/throttler) + 认证 (API Key Guard)
+
+### Milestone 6: Fullstack Demo ✅
+
+可视化验证 M5 后端
+
+- **健康监控**: 实时显示 M5 和 Redis 连接状态
+- **对话模式**: 同步/流式模式切换
+- **会话管理**: sessionId 跨请求持久化验证
+- **限流测试**: 并发请求触发 429
 
 ## 已掌握的核心能力
 

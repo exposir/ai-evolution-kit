@@ -190,6 +190,43 @@ cd packages/04-next-client && pnpm dev
 
 ---
 
+## Milestone 6: Fullstack Demo
+
+### 验收清单
+
+| 功能 | 验收标准 | 验证方法 |
+|------|----------|----------|
+| 健康监控 | 显示 M5 和 Redis 状态 | 页面加载 → 顶部状态栏显示「正常」「已连接」 |
+| 同步对话 | 完整响应后显示 | 切换「同步模式」→ 发送消息 → 等待完整响应 |
+| 流式对话 | 打字机效果 | 切换「流式模式」→ 发送消息 → 观察逐字显示 |
+| 会话持久化 | 跨请求记住上下文 | 说「我叫小明」→ 问「我叫什么」→ AI 回答「小明」|
+| 会话重置 | 清空历史 | 点击「重置会话」→ Session ID 消失 |
+| 限流验证 | 触发 429 | 1 秒内快速点击 5+ 次 → 部分请求报错 |
+
+### 启动测试
+
+```bash
+# 方式 1: 分别启动
+cd packages/05-server-core && pnpm dev  # 端口 3001
+cd packages/06-fullstack-demo && pnpm dev  # 端口 3002
+
+# 方式 2: 一键启动
+cd packages/06-fullstack-demo && pnpm demo
+```
+
+### 浏览器测试
+
+访问 http://localhost:3002
+
+- [ ] 页面加载后显示「M5: 正常」
+- [ ] 页面加载后显示「Redis: 已连接」
+- [ ] 同步模式发送消息正常响应
+- [ ] 流式模式显示打字机效果
+- [ ] 会话持久化验证通过
+- [ ] 重置会话功能正常
+
+---
+
 ## 测试配置
 
 ### 安装 Vitest
@@ -232,7 +269,8 @@ export default defineConfig({
 | M2 Data Foundation | ✅ 9/9 | ✅ 3/3 | ✅ 全部通过 |
 | M3 Agent Brain | ✅ | ✅ 4/4 | ✅ 全部通过 |
 | M4 Next Client | ✅ | ✅ 4/4 | ✅ 全部通过 |
-| M5 Server Core | ✅ | 🔶 2/3 | ⏳ Ch21 需 Redis |
+| M5 Server Core | ✅ | ✅ 3/3 | ✅ 全部通过 |
+| M6 Fullstack Demo | - | ✅ 验证 | ✅ 全部通过 |
 
 ---
 
@@ -399,3 +437,64 @@ Search: AI
 - 解决方案：改用 fetch 直接调用 API
 - 智谱 embedding-3 实际维度：2048（超过 pgvector 索引限制 2000）
 - 当前无索引运行，数据量大时需换用 ≤2000 维模型
+
+---
+
+### 2026-01-22: M5 完整验收
+
+**环境配置**:
+```
+OPENAI_BASE_URL=https://api.deepseek.com
+CHAT_MODEL=deepseek-chat
+REDIS_URL=rediss://default:xxx@content-tomcat-47806.upstash.io:6379
+```
+
+**验收结果**: ✅ 全部通过
+
+| 章节 | 状态 | 验证结果 |
+|------|------|----------|
+| Ch20 | ✅ | /chat 同步响应正常，/chat/stream SSE 流式正常 |
+| Ch21 | ✅ | Redis 连接成功，会话持久化生效（"我叫小明" → "你叫小明"）|
+| Ch22 | ✅ | 并发 5 请求 → 3 个 200, 2 个 429 |
+
+**测试命令**:
+```bash
+# 健康检查
+curl http://localhost:3001/health
+# {"status":"正常","services":{"redis":"已连接"}}
+
+# 同步对话
+curl -X POST http://localhost:3001/chat \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"hello"}]}'
+
+# 限流测试
+for i in {1..5}; do
+  curl -s -o /dev/null -w "%{http_code}\n" -X POST http://localhost:3001/chat \
+    -H "Content-Type: application/json" \
+    -d '{"messages":[{"role":"user","content":"hi"}]}' &
+done
+wait
+# 预期: 3 个 200, 2 个 429
+```
+
+---
+
+### 2026-01-22: M6 Fullstack Demo 验收
+
+**验收结果**: ✅ 全部通过
+
+| 功能 | 状态 | 验证结果 |
+|------|------|----------|
+| 健康监控 | ✅ | 页面显示「M5: 正常」「Redis: 已连接」|
+| 同步对话 | ✅ | 切换同步模式，响应正常 |
+| 流式对话 | ✅ | 打字机效果正常显示 |
+| 会话持久化 | ✅ | "我叫小明" → "你叫小明" |
+| 会话重置 | ✅ | 点击重置后 Session ID 清空 |
+
+**访问地址**: http://localhost:3002
+
+**关键技术**:
+- Next.js rewrite 代理 `/api/*` → `localhost:3001/*`
+- SSE 流式读取使用 ReadableStream API
+- 健康状态每 10 秒自动刷新
