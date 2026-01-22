@@ -256,9 +256,6 @@ function ChatTab({
     { text: "解释什么是 NestJS", icon: "🏗️" },
   ];
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, streamContent]);
 
   return (
     <div className="space-y-6">
