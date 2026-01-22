@@ -24,9 +24,10 @@ Milestone 6: Fullstack Demo - M5 后端可视化验证
 │  │  - 同步/流式模式切换                         │   │
 │  │  - 会话管理 (sessionId)                     │   │
 │  └─────────────────────────────────────────────┘   │
-│                        │ rewrite                    │
-│                        ▼                            │
-│              /api/* → localhost:3001/*              │
+│                        │ rewrite / route handler       │
+│                        ▼                               │
+│    /api/* → localhost:3001/* (rewrite)                 │
+│    /api/chat/stream → Route Handler (SSE 透传)         │
 └─────────────────────────────────────────────────────┘
                          │
                          ▼
@@ -50,7 +51,9 @@ Milestone 6: Fullstack Demo - M5 后端可视化验证
 src/app/
 ├── layout.tsx    : 根布局
 ├── page.tsx      : 验证页面 (健康检查/对话/会话管理)
-└── globals.css   : Tailwind 样式
+├── globals.css   : Tailwind 样式
+└── api/chat/stream/
+    └── route.ts  : SSE 流式端点 (绕过 rewrite 缓冲)
 ```
 
 ## 运行命令

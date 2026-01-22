@@ -457,6 +457,7 @@ function MemoryTab({
   isLoading: boolean;
 }) {
   const [currentStep, setCurrentStep] = useState(0);
+  const [chatInput, setChatInput] = useState("");
 
   const testSteps = [
     {
@@ -595,6 +596,44 @@ function MemoryTab({
               )}
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Free Chat */}
+      <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
+        <div className="bg-gradient-to-r from-cyan-500 to-blue-500 px-5 py-3">
+          <h3 className="text-white font-semibold">💬 自由对话</h3>
+        </div>
+        <div className="p-5">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (chatInput.trim() && !isLoading) {
+                onTestMemory(chatInput.trim());
+                setChatInput("");
+              }
+            }}
+            className="flex gap-3"
+          >
+            <input
+              type="text"
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              placeholder="输入任意内容测试记忆功能..."
+              disabled={isLoading}
+              className="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-400"
+            />
+            <button
+              type="submit"
+              disabled={isLoading || !chatInput.trim()}
+              className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-medium rounded-xl hover:from-cyan-600 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transition-all"
+            >
+              {isLoading ? "发送中..." : "发送"}
+            </button>
+          </form>
+          <p className="text-xs text-gray-400 mt-3">
+            💡 提示: 完成上方验证步骤后，可在此自由对话测试 AI 是否记住了你的信息
+          </p>
         </div>
       </div>
 
@@ -1137,7 +1176,7 @@ export default function Home() {
     };
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
-    await sendSync(msg);
+    await sendStream(msg);
     setIsLoading(false);
   };
 

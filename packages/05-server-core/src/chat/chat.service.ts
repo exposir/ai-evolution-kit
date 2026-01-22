@@ -101,23 +101,58 @@ export class ChatService {
 
   /* ─────────────────────────────────────────────────────────────────────────
    * streamChat - 流式对话 (SSE 逐 token 返回)
+   * - 支持会话持久化: 加载历史 → 流式响应 → 保存状态
    * - 返回 AsyncIterable, 供 Controller 流式响应
    * ───────────────────────────────────────────────────────────────────────── */
-  async *streamChat(dto: ChatRequestDto): AsyncIterable<string> {
+  async *streamChat(
+    dto: ChatRequestDto,
+  ): AsyncGenerator<{ type: 'sessionId' | 'content' | 'done'; data: string }> {
+    const sessionId = dto.sessionId || randomUUID();
     const model = dto.model || this.model;
 
-    const messages = dto.messages.map((m) => ({
+    this.logger.debug(`处理流式会话请求: ${sessionId}`);
+
+    // 先发送 sessionId
+    yield { type: 'sessionId', data: sessionId };
+
+    // 加载历史消息 (Ch21: Redis 持久化)
+    const history = await this.memoryService.getConversation(sessionId);
+    const historyMessages =
+      history?.messages.map((m) => ({
+        role: m.role,
+        content: m.content,
+      })) || [];
+
+    // 合并历史 + 新消息
+    const newMessages = dto.messages.map((m) => ({
       role: m.role,
       content: m.content,
     }));
+    const allMessages = [...historyMessages, ...newMessages];
 
     const result = streamText({
       model: this.openai(model),
-      messages,
+      messages: allMessages,
     });
 
+    let fullContent = '';
     for await (const chunk of result.textStream) {
-      yield chunk;
+      fullContent += chunk;
+      yield { type: 'content', data: chunk };
     }
+
+    // 保存用户消息和助手回复到 Redis
+    for (const msg of dto.messages) {
+      await this.memoryService.appendMessage(sessionId, {
+        role: msg.role,
+        content: msg.content,
+      });
+    }
+    await this.memoryService.appendMessage(sessionId, {
+      role: 'assistant',
+      content: fullContent,
+    });
+
+    yield { type: 'done', data: '' };
   }
 }
