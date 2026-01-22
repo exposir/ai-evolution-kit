@@ -50,36 +50,42 @@ flowchart TB
 flowchart LR
     subgraph "M6 Next.js :3002"
         A[React UI]
-        B[next.config.ts]
+        B[API Route Handler]
+        C[next.config.ts]
     end
 
     subgraph "M5 NestJS :3001"
-        C[ThrottlerGuard]
-        D[ChatController]
-        E[ChatService]
-        F[MemoryService]
+        D[ThrottlerGuard]
+        E[ChatController]
+        F[ChatService]
+        G[MemoryService]
     end
 
     subgraph "外部服务"
-        G[LLM API]
-        H[(Upstash Redis)]
+        H[LLM API]
+        I[(Upstash Redis)]
     end
 
-    A -->|fetch /api/*| B
-    B -->|rewrite| C
-    C --> D
+    A -->|fetch /api/chat| C
+    A -->|fetch /api/chat/stream| B
+    B -->|SSE Proxy| E
+    C -->|rewrite| D
     D --> E
-    E --> G
     E --> F
     F --> H
+    F --> G
+    G --> I
 
     style A fill:#e3f2fd
-    style C fill:#fff3e0
-    style H fill:#c8e6c9
+    style B fill:#c8e6c9
+    style D fill:#fff3e0
+    style I fill:#c8e6c9
 ```
 
 **关键技术点**：
-- **API Rewrite**: Next.js 将 `/api/*` 请求代理到 M5 后端，避免 CORS 问题
+
+- **API Route Handler** (`api/chat/stream/route.ts`): 专用 SSE 流式端点，绕过 Next.js rewrite 缓冲问题
+- **API Rewrite**: Next.js 将 `/api/chat` 等请求代理到 M5 后端，避免 CORS
 - **ThrottlerGuard**: M5 的限流守卫保护 API 不被滥用
 - **MemoryService**: Redis 实现会话持久化，支持多轮对话上下文
 
@@ -99,7 +105,15 @@ CHAT_MODEL=your-model-name
 REDIS_URL=rediss://default:xxx@xxx.upstash.io:6379
 ```
 
-### 方式 1: 分别启动
+### 方式 1: 一键启动（推荐）
+
+```bash
+# 从根目录运行
+pnpm m6
+# 同时启动 M5 (:3001) + M6 (:3002)
+```
+
+### 方式 2: 分别启动
 
 ```bash
 # 终端 1: 启动 M5 后端
@@ -114,108 +128,94 @@ pnpm dev
 # 运行在 http://localhost:3002
 ```
 
-### 方式 2: 一键启动
-
-```bash
-cd packages/06-fullstack-demo
-pnpm demo  # 同时启动 M5 + M6
-```
-
 ### 打开浏览器
 
 访问 http://localhost:3002
 
-## 验证清单
+## 功能标签页
 
-### Ch20: NestJS 架构
+### 📊 Dashboard - 服务状态总览
 
-| 测试项 | 操作 | 预期结果 |
-| ------ | ---- | -------- |
-| 同步对话 | 切换到「同步模式」，发送 "hello" | 收到完整 AI 响应 |
-| 流式对话 | 切换到「流式模式」，发送 "count 1 to 5" | 看到打字机效果 |
-| 健康检查 | 观察顶部状态栏 | 显示「M5: 正常」 |
+- **实时监控**: M5 健康状态、Redis 连接、会话信息
+- **服务统计**: 运行时长、请求计数、缓存命中率
+- **架构图示**: ASCII 艺术风格的系统架构可视化
 
-### Ch21: Redis Memory
+### 💬 Chat - 对话测试（Ch20）
 
 | 测试项 | 操作 | 预期结果 |
 | ------ | ---- | -------- |
-| 会话创建 | 发送第一条消息 | 顶部显示 Session ID |
-| 上下文记忆 | 说 "我叫小明"，再问 "我叫什么？" | AI 回答 "小明" |
-| 会话重置 | 点击「重置会话」 | Session ID 消失，历史清空 |
-| Redis 状态 | 观察顶部状态栏 | 显示「Redis: 已连接」 |
+| 流式对话 | 发送 "count 1 to 5" | 看到逐字打字机效果 |
+| 会话持久化 | 说 "我叫小明"，再问 "我叫什么？" | AI 记住上下文 |
+| 模式切换 | 切换「同步」/「流式」 | 响应方式改变 |
 
-### Ch22: Guardrails
+**特性**:
+- **模式切换**: 同步模式（一次性返回） vs 流式模式（逐字显示）
+- **流式指示**: 实时显示"流式传输中"状态和光标动画
+- **快捷建议**: 预置常用问题，一键发送
+
+### 🧠 Memory - 会话持久化（Ch21）
+
+**3 步验证流程**:
+
+1. **设置记忆**: 说 "我叫小明，请记住我的名字"
+2. **追加信息**: 说 "我喜欢编程和喝咖啡"
+3. **验证记忆**: 问 "我叫什么名字？我有什么爱好？"
+
+**自由对话区**:
+- 完成验证步骤后，可在此自由对话
+- 测试 AI 是否记住之前的所有信息
+- 支持流式传输，实时响应
+
+**会话卡片**:
+- 显示当前 sessionId
+- 实时更新会话状态（活跃/新建）
+- Redis 连接状态指示
+
+### ⚡ Throttle - 限流测试（Ch22）
 
 | 测试项 | 操作 | 预期结果 |
 | ------ | ---- | -------- |
-| 限流触发 | 1 秒内快速点击发送 5+ 次 | 部分请求显示错误（429） |
+| 并发请求 | 选择 "10 个并发请求" | 部分请求返回 429 |
 | 限流恢复 | 等待几秒后重试 | 请求恢复正常 |
 
-## 功能特性
-
-### 实时健康监控
-
-```
-┌──────────────────────────────────────┐
-│ [M5: 正常] [Redis: 已连接] [Session] │
-└──────────────────────────────────────┘
-```
-
-- **M5 状态**: 每 10 秒自动检查后端健康
-- **Redis 状态**: 显示会话持久化是否可用
-- **Session ID**: 当前会话标识，用于多轮对话
-
-### 对话模式切换
-
-| 模式 | API | 特点 |
-| ---- | --- | ---- |
-| 同步模式 | POST /chat | 等待完整响应后显示 |
-| 流式模式 | POST /chat/stream | SSE 逐字显示，打字机效果 |
-
-### 会话管理
-
-- **自动创建**: 首次对话自动生成 sessionId
-- **持久化**: 使用相同 sessionId 保持上下文（需 Redis）
-- **手动重置**: 点击「重置会话」开始新对话
-
-## 界面预览
-
-```
-┌─────────────────────────────────────────────────────────┐
-│  M6: Fullstack Demo                                     │
-│  验证 M5 NestJS 后端 (Next.js 前端 + NestJS 后端)        │
-├─────────────────────────────────────────────────────────┤
-│  [M5: 正常] [Redis: 已连接] [Session: a1b2c3d4...]      │
-│                                                         │
-│  [同步模式] [流式模式] [重置会话]                        │
-├─────────────────────────────────────────────────────────┤
-│                                                         │
-│  ┌─────────────────────────────────────────────────┐   │
-│  │                                             你  │   │
-│  │  我叫小明，请记住我的名字                       │   │
-│  └─────────────────────────────────────────────────┘   │
-│                                                         │
-│  ┌─────────────────────────────────────────────────┐   │
-│  │  AI                                             │   │
-│  │  好的，我记住了！你叫小明。有什么可以帮你的？    │   │
-│  └─────────────────────────────────────────────────┘   │
-│                                                         │
-│  ┌─────────────────────────────────────────────────┐   │
-│  │                                             你  │   │
-│  │  我叫什么名字？                                 │   │
-│  └─────────────────────────────────────────────────┘   │
-│                                                         │
-│  ┌─────────────────────────────────────────────────┐   │
-│  │  AI                                             │   │
-│  │  你叫小明！我刚才记住的。😊                      │   │
-│  └─────────────────────────────────────────────────┘   │
-│                                                         │
-├─────────────────────────────────────────────────────────┤
-│  [输入消息...]                              [发送]      │
-└─────────────────────────────────────────────────────────┘
-```
+**功能**:
+- 并发请求数选择器（5/10/20/50）
+- 实时统计：成功/失败/429 错误数量
+- 详细结果网格：每个请求的状态和响应时间
 
 ## 技术实现
+
+### SSE 流式端点（新架构）
+
+为解决 Next.js rewrite 缓冲 SSE 响应的问题，我们创建了专用的 Route Handler：
+
+```typescript
+// src/app/api/chat/stream/route.ts
+export async function POST(request: NextRequest) {
+  const body = await request.json();
+
+  const response = await fetch(`${M5_URL}/chat/stream`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  // 透传 SSE 流，不缓冲
+  return new Response(response.body, {
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    },
+  });
+}
+```
+
+**为什么需要专用 Route Handler？**
+
+- Next.js `rewrites` 会缓冲整个响应，破坏 SSE 流式特性
+- Route Handler 直接透传 `response.body`，保持流式传输
+- 前端体验：真正的逐字显示，而非等待完整响应
 
 ### API 代理配置
 
@@ -225,31 +225,53 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
+        source: "/api/chat/stream",
+        destination: "/api/chat/stream", // 使用 Route Handler
+        has: [{ type: "header", key: "x-skip-rewrite" }], // 跳过此规则
+      },
+      {
         source: "/api/:path*",
-        destination: "http://localhost:3001/:path*",
+        destination: "http://localhost:3001/:path*", // 代理到 M5
       },
     ];
   },
 };
 ```
 
-### 流式响应处理
+### 前端流式响应处理
 
 ```typescript
 // page.tsx - SSE 流式读取
 const reader = res.body?.getReader();
 const decoder = new TextDecoder();
+let fullContent = "";
 
 while (true) {
   const { done, value } = await reader.read();
   if (done) break;
 
   const chunk = decoder.decode(value);
-  // 解析 SSE data: 格式
   for (const line of chunk.split("\n")) {
     if (line.startsWith("data: ")) {
-      const parsed = JSON.parse(line.slice(6));
-      // 逐字更新 UI
+      const data = line.slice(6);
+      if (data.includes("DONE")) continue;
+
+      try {
+        const parsed = JSON.parse(data);
+
+        // 处理 sessionId
+        if (parsed.sessionId) {
+          setSessionId(parsed.sessionId);
+        }
+
+        // 处理流式内容
+        if (parsed.content) {
+          fullContent += parsed.content;
+          setStreamContent(fullContent); // 实时更新 UI
+        }
+      } catch {
+        // 忽略解析错误
+      }
     }
   }
 }
@@ -262,13 +284,41 @@ while (true) {
 ├── CLAUDE.md              # 架构文档 (L2)
 ├── README.md              # 使用指南 (本文件)
 ├── package.json           # 依赖配置
-├── next.config.ts         # API rewrite → M5
+├── next.config.ts         # API rewrite 配置
+├── postcss.config.mjs     # Tailwind CSS 4 配置
 ├── tsconfig.json          # TypeScript 配置
 └── src/app/
     ├── layout.tsx         # 根布局，Tailwind 配置
-    ├── page.tsx           # 验证页面，核心逻辑
-    └── globals.css        # Tailwind 样式入口
+    ├── page.tsx           # 主页面，4 个标签页逻辑
+    ├── globals.css        # Tailwind 样式入口
+    └── api/chat/stream/
+        └── route.ts       # SSE 流式端点 Route Handler
 ```
+
+## 验证清单
+
+### Ch20: NestJS 架构
+
+| 测试项 | 操作 | 预期结果 |
+| ------ | ---- | -------- |
+| 流式对话 | Chat Tab，发送 "count 1 to 5" | 看到打字机效果 |
+| 健康检查 | Dashboard Tab | 显示「M5: 正常」 |
+
+### Ch21: Redis Memory
+
+| 测试项 | 操作 | 预期结果 |
+| ------ | ---- | -------- |
+| 会话创建 | Memory Tab，发送第一条消息 | 顶部显示 Session ID |
+| 上下文记忆 | 完成 3 步验证流程 | AI 准确回答所有信息 |
+| 自由对话 | 使用「💬 自由对话」区块 | AI 保持上下文记忆 |
+| Redis 状态 | Dashboard Tab | 显示「Redis: 已连接」 |
+
+### Ch22: Guardrails
+
+| 测试项 | 操作 | 预期结果 |
+| ------ | ---- | -------- |
+| 限流触发 | Throttle Tab，发送 10+ 并发请求 | 部分请求返回 429 |
+| 限流恢复 | 等待几秒后重试 | 请求恢复正常 |
 
 ## 常见问题
 
@@ -286,14 +336,14 @@ while (true) {
 ### 会话记忆不生效
 
 1. 确认 Redis 已连接
-2. 检查是否使用了相同的 sessionId
-3. 尝试点击「重置会话」后重新测试
+2. 检查 Memory Tab 顶部是否显示 sessionId
+3. 尝试重新完成 3 步验证流程
 
-### 限流测试不触发 429
+### 流式模式没有逐字显示
 
-1. 需要真正的并发请求（快速连续点击）
-2. M5 限流配置：1 秒 3 次
-3. 单次点击间隔可能超过限流窗口
+1. 确认选择了「流式模式」
+2. 检查浏览器开发者工具 Network 标签，确认 `Content-Type: text/event-stream`
+3. 可能是网络问题，尝试刷新页面
 
 ## 相关模块
 
@@ -307,6 +357,7 @@ while (true) {
 - **前后端协作**: Next.js + NestJS 全栈开发模式
 - **API 代理**: Next.js rewrite 解决跨域问题
 - **SSE 流式**: 浏览器端处理 Server-Sent Events
+- **Route Handler**: 绕过 rewrite 缓冲实现真正的流式传输
 - **会话管理**: 基于 sessionId 的多轮对话状态
 
 🎉 **恭喜完成全部 6 个 Milestone！**

@@ -1,7 +1,7 @@
 <!--
 - [INPUT]: 依赖 NestJS 与后端架构设计
 - [OUTPUT]: 本文档提供 Milestone 5 的生产级后端开发指南
-- [POS]: 05-server-core 的 模块文档
+- [POS]: 05-server-core 的模块文档
 - [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 
@@ -58,7 +58,7 @@ OPENAI_API_KEY=sk-xxx
 OPENAI_BASE_URL=https://api.example.com/v1
 CHAT_MODEL=your-model-name
 
-# Redis (可选)
+# Redis (可选，用于会话持久化)
 REDIS_URL=redis://localhost:6379
 
 # 认证 (可选)
@@ -67,28 +67,44 @@ API_KEY=your-secret-api-key
 
 ## API 端点
 
-| Method | Path         | 说明     | 认证 |
-| ------ | ------------ | -------- | :--: |
-| POST   | /chat        | 同步对话 |  ✅  |
-| POST   | /chat/stream | 流式对话 |  ✅  |
-| GET    | /health      | 健康检查 |  ❌  |
+| Method | Path         | 说明                       | 会话持久化 | 认证 |
+| ------ | ------------ | -------------------------- | :--------: | :--: |
+| POST   | /chat        | 同步对话，一次性返回完整响应 |     ✅     |  ✅  |
+| POST   | /chat/stream | 流式对话，SSE 逐 token 返回  |     ✅     |  ✅  |
+| GET    | /health      | 健康检查，返回服务状态       |     ❌     |  ❌  |
+
+**会话持久化说明**:
+- 两种端点都支持通过 `sessionId` 实现多轮对话
+- 历史消息自动从 Redis 加载并合并到请求中
+- 对话完成后自动保存到 Redis（TTL 24 小时）
 
 ### 请求示例
 
 ```bash
-# 同步对话
+# 同步对话 (带会话持久化)
 curl -X POST http://localhost:3001/chat \
   -H "X-API-Key: your-secret-api-key" \
   -H "Content-Type: application/json" \
-  -d '{"messages":[{"role":"user","content":"hello"}]}'
+  -d '{
+    "sessionId": "my-session-123",
+    "messages": [{"role":"user","content":"我叫小明"}]
+  }'
 
-# 流式对话
+# 流式对话 (带会话持久化)
 curl -N -X POST http://localhost:3001/chat/stream \
   -H "X-API-Key: your-secret-api-key" \
   -H "Content-Type: application/json" \
-  -d '{"messages":[{"role":"user","content":"count 1 to 5"}]}'
-```
+  -d '{
+    "sessionId": "my-session-123",
+    "messages": [{"role":"user","content":"我叫什么名字？"}]
+  }'
 
+# 输出格式 (SSE):
+# data: {"sessionId":"my-session-123"}
+# data: {"content":"你"}
+# data: {"content":"叫"}
+# data: {"content":"小明"}
+# data:
 ## 章节导航
 
 ### Ch20: NestJS 架构 — Controller/Service/Module
@@ -112,6 +128,11 @@ flowchart TB
 
     style CS fill:#e3f2fd
 ```
+
+**核心概念**:
+- **Controller**: HTTP 请求入口，负责路由和参数校验
+- **Service**: 业务逻辑层，可被多个 Controller 复用
+- **Module**: 功能模块封装，通过 DI 解耦依赖关系
 
 ### Ch21: Redis Memory — 会话持久化 + 缓存
 
@@ -209,6 +230,38 @@ async saveConversation(state: ConversationState): Promise<void> {
 }
 ```
 
+**流式对话的会话持久化** (`chat.service.ts`)
+
+```typescript
+async *streamChat(dto: ChatRequestDto) {
+  const sessionId = dto.sessionId || randomUUID();
+  
+  // 1. 先发送 sessionId 给前端
+  yield { type: 'sessionId', data: sessionId };
+  
+  // 2. 加载历史消息
+  const history = await this.memoryService.getConversation(sessionId);
+  const allMessages = [...(history?.messages || []), ...dto.messages];
+  
+  // 3. 流式生成回复
+  const result = streamText({ model: this.openai(model), messages: allMessages });
+  let fullContent = '';
+  for await (const chunk of result.textStream) {
+    fullContent += chunk;
+    yield { type: 'content', data: chunk };
+  }
+  
+  // 4. 保存对话到 Redis
+  for (const msg of dto.messages) {
+    await this.memoryService.appendMessage(sessionId, msg);
+  }
+  await this.memoryService.appendMessage(sessionId, {
+    role: 'assistant',
+    content: fullContent,
+  });
+}
+```
+
 **TTL（过期时间）配置**
 
 在 `memory.service.ts` 中定义：
@@ -233,6 +286,7 @@ private readonly TTL = {
 | ✅ 支持多轮上下文对话 | ❌ 历史过长可能超 token 限制 |
 | ✅ 自动过期（24h TTL） | ❌ 未做滑动窗口优化 |
 | ✅ 重启不丢失历史 | ❌ 每次加载全部历史消息 |
+| ✅ 同步/流式端点都支持 | ❌ 需要 Redis 外部依赖 |
 
 **改进方向**
 
@@ -302,11 +356,36 @@ src/
 
 ## 验收清单
 
-| 章节 | 验收标准     | 验证方式     |
-| ---- | ------------ | ------------ |
-| Ch20 | 接口正常响应 | curl /chat   |
-| Ch21 | 重启后历史在 | Redis 持久化 |
-| Ch22 | 限流生效     | 超限返回 429 |
+| 章节 | 验收标准 | 验证方式 |
+| ---- | -------- | -------- |
+| Ch20 | 接口正常响应 | curl /chat |
+| Ch21 | 会话持久化（同步+流式） | 多轮对话测试 |
+| Ch21 | 重启后历史存在 | 重启服务后继续对话 |
+| Ch22 | 限流生效 | 超限返回 429 |
+
+### 会话持久化测试
+
+```bash
+# 1. 第一轮对话（创建会话）
+curl -X POST http://localhost:3001/chat/stream \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"我叫小明"}]}'
+
+# 输出会包含 sessionId:
+# data: {"sessionId":"abc-123-xyz"}
+# data: {"content":"你好，小明！"}
+
+# 2. 第二轮对话（使用相同 sessionId）
+curl -X POST http://localhost:3001/chat/stream \
+  -H "Content-Type: application/json" \
+  -d '{
+    "sessionId":"abc-123-xyz",
+    "messages":[{"role":"user","content":"我叫什么名字？"}]
+  }'
+
+# 输出会显示 AI 记住了你的名字:
+# data: {"content":"你叫小明"}
+```
 
 ### 限流测试
 
@@ -327,6 +406,7 @@ done
 - **Guard 机制**：请求拦截与权限验证
 - **Interceptor**：请求/响应处理管道
 - **Redis 集成**：会话持久化 + 响应缓存
+- **SSE 流式**：Server-Sent Events 实现
 
 🎉 **恭喜完成全部 22 章节！**
 
