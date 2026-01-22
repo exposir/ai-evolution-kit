@@ -128,6 +128,119 @@ flowchart LR
     style C fill:#c8e6c9
 ```
 
+#### 持久对话原理
+
+**存储格式**
+
+每个会话在 Redis 中存储为一个 Key-Value 对：
+
+```typescript
+// Redis Key
+"conv:{sessionId}"
+
+// Redis Value (JSON)
+{
+  sessionId: "uuid-xxx",
+  messages: [
+    { role: "user", content: "我叫小明", timestamp: 1234567890 },
+    { role: "assistant", content: "你好，小明！", timestamp: 1234567891 }
+  ],
+  metadata: {},
+  createdAt: 1234567890,
+  updatedAt: 1234567891
+}
+```
+
+**工作流程**
+
+```mermaid
+flowchart TB
+    A[用户发送消息 + sessionId] --> B[从 Redis 读取历史]
+    B --> C{会话存在?}
+    C -->|是| D[加载历史消息]
+    C -->|否| E[创建新会话]
+    D --> F[合并: 历史 + 新消息]
+    E --> F
+    F --> G[发送给 AI]
+    G --> H[AI 回复]
+    H --> I[保存: 用户消息 + AI 回复]
+    I --> J[返回响应]
+
+    style B fill:#e3f2fd
+    style I fill:#c8e6c9
+```
+
+**关键实现** (`memory.service.ts`)
+
+```typescript
+// 1. 读取会话历史
+async getConversation(sessionId: string): Promise<ConversationState | null> {
+  const key = 'conv:' + sessionId;
+  const data = await this.redis.get(key);
+  return data ? JSON.parse(data) : null;
+}
+
+// 2. 追加新消息
+async appendMessage(sessionId: string, message: Message) {
+  let state = await this.getConversation(sessionId);
+
+  if (!state) {
+    state = {
+      sessionId,
+      messages: [],
+      metadata: {},
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+  }
+
+  state.messages.push({ ...message, timestamp: Date.now() });
+  await this.saveConversation(state);
+}
+
+// 3. 保存会话（带 TTL）
+async saveConversation(state: ConversationState): Promise<void> {
+  const key = 'conv:' + state.sessionId;
+  await this.redis.setex(
+    key,
+    this.TTL.CONVERSATION,  // 86400 秒 = 24 小时
+    JSON.stringify(state)
+  );
+}
+```
+
+**TTL（过期时间）配置**
+
+在 `memory.service.ts` 中定义：
+
+```typescript
+private readonly TTL = {
+  CONVERSATION: 60 * 60 * 24,  // 24 小时（86400 秒）
+  CACHE: 60 * 5,               // 5 分钟（300 秒）
+};
+```
+
+使用 Redis `SETEX` 命令写入时自动设置过期时间：
+- 每次 `appendMessage` 都会刷新 TTL
+- 24 小时后 Redis 自动删除，节省存储空间
+- 修改 `TTL.CONVERSATION` 值即可调整过期时间
+
+**优缺点分析**
+
+| 优点 | 缺点 |
+|------|------|
+| ✅ 简单直观，sessionId 即会话隔离 | ❌ 长对话会占用较多内存 |
+| ✅ 支持多轮上下文对话 | ❌ 历史过长可能超 token 限制 |
+| ✅ 自动过期（24h TTL） | ❌ 未做滑动窗口优化 |
+| ✅ 重启不丢失历史 | ❌ 每次加载全部历史消息 |
+
+**改进方向**
+
+1. **限制历史长度**：只保留最近 N 条消息
+2. **Token 计数**：超限自动截断早期对话
+3. **冷热分离**：近期消息存 Redis，历史归档到 DB
+4. **滑动窗口**：动态调整上下文长度
+
 ### Ch22: Guardrails — 限流 + 认证
 
 保护 API 免受滥用，控制访问权限。
