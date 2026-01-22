@@ -1268,23 +1268,85 @@ export default function Home() {
         {activeTab === "throttle" && <ThrottleTab />}
       </div>
 
-      {/* Footer */}
+      {/* Footer - Tech Stack */}
       <footer className="bg-white border-t mt-12">
         <div className="max-w-6xl mx-auto px-6 py-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
-            <p>
-              M6 前端 (port 3002) → M5 后端 (port 3001) → Redis (Upstash)
-            </p>
-            <div className="flex gap-4">
-              <a
-                href="http://localhost:3001/health"
-                target="_blank"
-                className="text-blue-500 hover:underline"
-              >
-                M5 健康检查
-              </a>
-              <span>·</span>
-              <span>AI Evolution Kit</span>
+          {/* Tech Stack - Two Rows */}
+          <div className="space-y-3 mb-4">
+            {/* Row 1: Service Providers */}
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              <div className="flex items-center gap-1.5 text-sm">
+                <span>🤖</span>
+                <span className="text-gray-700">OpenAI</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-sm">
+                <span>🌊</span>
+                <span className="text-gray-700">DeepSeek</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-sm">
+                <span>☁️</span>
+                <span className="text-gray-700">Upstash</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-sm">
+                <span>🟢</span>
+                <span className="text-gray-700">Supabase</span>
+              </div>
+            </div>
+
+            {/* Row 2: Tech Stack */}
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              <div className="flex items-center gap-1.5 text-sm">
+                <span>⚛️</span>
+                <span className="text-gray-700">React 19</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-sm">
+                <span>▲</span>
+                <span className="text-gray-700">Next.js 15</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-sm">
+                <span>🐈</span>
+                <span className="text-gray-700">NestJS 11</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-sm">
+                <span>🔷</span>
+                <span className="text-gray-700">TypeScript</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-sm">
+                <span>🎨</span>
+                <span className="text-gray-700">Tailwind CSS 4</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-sm">
+                <span>🔴</span>
+                <span className="text-gray-700">Redis</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-sm">
+                <span>⚡</span>
+                <span className="text-gray-700">Vercel AI SDK</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-sm">
+                <span>📦</span>
+                <span className="text-gray-700">pnpm</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Info */}
+          <div className="pt-4 border-t">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
+              <p>
+                M6 前端 (port 3002) → M5 后端 (port 3001) → Redis (Upstash)
+              </p>
+              <div className="flex gap-4">
+                <a
+                  href="http://localhost:3001/health"
+                  target="_blank"
+                  className="text-blue-500 hover:underline"
+                >
+                  M5 健康检查
+                </a>
+                <span>·</span>
+                <span>AI Evolution Kit</span>
+              </div>
             </div>
           </div>
         </div>

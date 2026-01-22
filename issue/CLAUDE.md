@@ -174,3 +174,4 @@ gh issue create \
 ---
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+| sessionId生命周期解析.md      | [#2](https://github.com/exposir/ai-evolution-kit/issues/2) | 2026-01-23 | sessionId 生成、传递、存储机制    |
