@@ -11,8 +11,6 @@
 > **讨论主题**: sessionId 的生成机制、传递流程、存储策略  
 > **GitHub Issue**: [#2 sessionId 生命周期完全解析](https://github.com/exposir/ai-evolution-kit/issues/2)
 
-> 💡 **相关文档**: 本文是 [#1 M6 会话持久化与上下文管理](https://github.com/exposir/ai-evolution-kit/issues/1) 的深入展开
-
 ---
 
 ## 一、核心问题
